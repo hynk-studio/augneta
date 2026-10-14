@@ -1,0 +1,105 @@
+{
+  "config": {
+    "arena_half_width": 1.0,
+    "control_gain": 2.0,
+    "drag": 1.2,
+    "dt_s": 0.05,
+    "evaluation_end_step": 600,
+    "evaluation_start_step": 100,
+    "feedback_period_steps": 4,
+    "flow_period_s": 9.0,
+    "flow_strength": 0.65,
+    "max_speed": 1.5,
+    "seed": 7,
+    "sensor_delay_steps": 4,
+    "sensor_dropout_probability": 0.1,
+    "sensor_noise_std": 0.18,
+    "sensor_period_steps": 4,
+    "steps": 600,
+    "target_period_s": 16.0,
+    "target_radius": 0.5
+  },
+  "config_sha256": "39ec81a90e30322dec5b79d13a40f3e9a7f8e5c8f96bf209140672cc77010284",
+  "description": "CPU-only synthetic smoke after the preview/proxy fix; not human or physical evidence",
+  "hardware_verified": false,
+  "human_evidence": false,
+  "participant_kind": "synthetic",
+  "policy_id": "visible-pd-v1",
+  "results": [
+    {
+      "completed_steps": 600,
+      "condition": "none",
+      "diagnostic": false,
+      "evaluation_window": {
+        "end_inclusive": 600,
+        "start_exclusive": 100
+      },
+      "evidence_scope": "technical_verification",
+      "expected_samples": 500,
+      "hardware_verified": false,
+      "human_evidence": false,
+      "normalization": "arena_diagonal",
+      "normalization_constant": 2.8284271247461903,
+      "normalized_tracking_rmse": 0.05808011850785609,
+      "output_mode": "software_only",
+      "participant_kind": "synthetic",
+      "replay_verified": true,
+      "samples": 500,
+      "status": "complete",
+      "tracking_rmse": 0.1642753825960934
+    },
+    {
+      "completed_steps": 600,
+      "condition": "dashboard",
+      "diagnostic": false,
+      "evaluation_window": {
+        "end_inclusive": 600,
+        "start_exclusive": 100
+      },
+      "evidence_scope": "technical_verification",
+      "expected_samples": 500,
+      "hardware_verified": false,
+      "human_evidence": false,
+      "normalization": "arena_diagonal",
+      "normalization_constant": 2.8284271247461903,
+      "normalized_tracking_rmse": 0.045378297228523795,
+      "output_mode": "software_only",
+      "participant_kind": "synthetic",
+      "replay_verified": true,
+      "samples": 500,
+      "status": "complete",
+      "tracking_rmse": 0.12834920675595157
+    },
+    {
+      "completed_steps": 600,
+      "condition": "sensory_preview",
+      "diagnostic": false,
+      "evaluation_window": {
+        "end_inclusive": 600,
+        "start_exclusive": 100
+      },
+      "evidence_scope": "technical_verification",
+      "expected_samples": 500,
+      "hardware_verified": false,
+      "human_evidence": false,
+      "normalization": "arena_diagonal",
+      "normalization_constant": 2.8284271247461903,
+      "normalized_tracking_rmse": 0.045378297228523795,
+      "output_mode": "software_only",
+      "participant_kind": "synthetic",
+      "replay_verified": true,
+      "samples": 500,
+      "status": "complete",
+      "tracking_rmse": 0.12834920675595157
+    }
+  ],
+  "software": {
+    "git_commit": "9e2c772a81e1a6addf1bb90fdb2eaeafb40ef2ce",
+    "package_version": "0.1.0",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "source_sha256": "f01361b4d0aa963d1b5a90c620cf623c3e2244b70143d9f1a88eeb0bbaab7aa0",
+    "working_tree_dirty": true
+  },
+  "verification_command": ".venv/bin/python -m augneta smoke --out runs/proxy-fix-smoke --seed 7"
+}

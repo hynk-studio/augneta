@@ -6,7 +6,7 @@
 - Read `README.md`, the relevant sections of `docs/PROJECT_SELECTION_AND_PROTOCOL.md`, and the assigned task.
 - The first implementation is specified in `docs/tasks/FIRST_IMPLEMENTATION.md`. Cloud setup is a separate task in `docs/tasks/CLOUD_ENVIRONMENT_SETUP.md`.
 - Augneta is independent of Augnes. Its runtime, authority system, test suites, and release gates are not requirements here.
-- The current repository is documentation-only. Do not infer working code, dependency manifests, test commands, or experimental results from design documents.
+- The first software implementation and its verification are documented in `README.md`, `docs/METHODS.md`, and `docs/VERIFICATION.md`. Use the actual dependency metadata and executable checks; do not infer human or physical results from software tests or design documents.
 
 ## Workflow
 

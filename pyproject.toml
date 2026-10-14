@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "augneta"
+version = "0.1.0"
+description = "A development experiment for direct-control hidden-flow tracking"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["Flask==3.1.3"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "playwright==1.64.0"]
+
+[project.scripts]
+augneta = "augneta.cli:main"
+
+[tool.setuptools.package-data]
+augneta = ["static/*.html", "static/*.css", "static/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

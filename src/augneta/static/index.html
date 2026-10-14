@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Augneta · Hidden flow</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='16' fill='%23157a6e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a class="wordmark" href="/">augneta<span> / experiment 01</span></a>
+      <span class="badge">Software development · no physical output</span>
+    </header>
+    <section class="intro">
+      <p class="eyebrow">HIDDEN-FLOW TRACKING</p>
+      <h1>Follow the target.<br>Explore the unseen force.</h1>
+      <p>Steer the teal point toward the moving orange ring. A hidden flow pushes your point.
+        You control every action; the feedback describes the flow.</p>
+    </section>
+    <form id="setup" class="setup">
+      <label>Feedback condition
+        <select id="condition">
+          <option value="none">A · No additional information</option>
+          <option value="dashboard">B · Matched visual dashboard</option>
+          <option value="sensory_preview">C · Sensory code — development preview</option>
+        </select>
+      </label>
+      <label class="seed">Simulation seed
+        <input id="seed" type="number" min="0" max="4294967295" value="7" required>
+      </label>
+      <button id="start" type="submit">Start trial <span aria-hidden="true">↗</span></button>
+    </form>
+    <section class="experiment">
+      <div class="arena-panel">
+        <div class="panel-top"><span><i class="dot teal"></i> You <i class="dot orange"></i> Target</span>
+          <span id="clock">0.00 / 30.00 s</span></div>
+        <canvas id="arena" width="720" height="620" aria-label="Tracking arena: use arrow keys or W A S D to move your point"></canvas>
+        <div class="arena-bottom">
+          <span id="motion">Position 0.00, 0.00 · Velocity 0.00, 0.00</span>
+          <span>+x right · +y up</span>
+        </div>
+        <progress id="progress" max="600" value="0" aria-label="Trial progress"></progress>
+      </div>
+      <aside class="feedback-panel">
+        <p class="eyebrow">ADDITIONAL INFORMATION</p>
+        <h2 id="feedback-title">No additional information</h2>
+        <p id="feedback-description">Track using the visible target and your point’s motion.</p>
+        <canvas id="feedback" width="360" height="300" aria-label="Environmental force feedback"></canvas>
+        <p id="feedback-value" class="feedback-value">No force estimate is displayed.</p>
+        <dl id="telemetry" hidden>
+          <div><dt>Uncertainty (standard deviation)</dt><dd id="uncertainty">—</dd></div>
+          <div><dt>Sensor / dropout</dt><dd id="sensor">—</dd></div>
+          <div><dt>Sample age at update</dt><dd id="age">—</dd></div>
+          <div><dt>Feedback update</dt><dd id="emitted">—</dd></div>
+        </dl>
+        <p id="preview-note" class="note" hidden>Development preview only. These circles represent intended
+          channel intensities. No haptic signal is delivered or physically verified.</p>
+      </aside>
+    </section>
+    <section class="control-row">
+      <div>
+        <p class="control-help"><kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> or <kbd>W A S D</kbd> to steer · <kbd>Space</kbd> to pause</p>
+        <p class="muted">The arrow reports environmental force, not the direction you should move.</p>
+      </div>
+      <div class="touch-pad" aria-label="On-screen direction controls">
+        <button type="button" data-key="ArrowLeft" aria-label="Move left">←</button>
+        <button type="button" data-key="ArrowUp" aria-label="Move up">↑</button>
+        <button type="button" data-key="ArrowDown" aria-label="Move down">↓</button>
+        <button type="button" data-key="ArrowRight" aria-label="Move right">→</button>
+      </div>
+      <button id="pause" class="secondary" disabled>Pause</button>
+      <button id="stop" class="secondary" disabled>Stop trial</button>
+    </section>
+    <p id="status" class="status" role="status" aria-live="polite">Ready. Choose a condition and start a development trial.</p>
+    <section id="result" class="result" hidden>
+      <div><p class="eyebrow">NORMALIZED TRACKING RMSE</p><strong id="score">—</strong></div>
+      <p id="result-detail"></p>
+    </section>
+    <footer>
+      <p>Technical development only · <span id="participant-label">developer inspection</span> · human_evidence=false · hardware_verified=false</p>
+      <p>Local logs contain actions and simulation data, with no participant identifiers. This is not a participant study.
+        Simulation time may run slower than wall time. No learning, embodiment, sensory extension, or consciousness result is established.</p>
+      <p id="log-location"></p>
+    </footer>
+  </main>
+</body>
+</html>

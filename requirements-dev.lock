@@ -1,0 +1,19 @@
+# Generated from pyproject.toml in Python 3.12; runtime, build, and development tools.
+# Install before the editable package with --no-build-isolation --no-deps.
+blinker==1.9.0
+click==8.5.0
+Flask==3.1.3
+greenlet==3.5.6
+iniconfig==2.3.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+packaging==26.3
+playwright==1.64.0
+pluggy==1.6.0
+pyee==14.0.0
+Pygments==2.21.0
+pytest==9.1.1
+setuptools==84.0.0
+typing_extensions==4.16.0
+Werkzeug==3.1.9

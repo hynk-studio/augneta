@@ -2,6 +2,8 @@
 
 Status: setup instructions; this document does not establish that a Cloud environment has been created or published.
 
+The first implementation now provides actual dependency metadata and runnable checks. After its PR is merged, use [the implementation's exact install/start update](../CLOUD_ENVIRONMENT_UPDATE.md). The original setup-only prompt below is retained for context; it is not the current implementation scope.
+
 Select `hynk-studio/augneta` when creating the environment. Use the following prompt in its setup conversation. Read the current repository first: dependency metadata may have been added after this document.
 
 ```text
