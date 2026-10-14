@@ -46,6 +46,14 @@ python -m venv .venv
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000). On a remote Cloud executor, use its localhost port preview/forwarding if available; `127.0.0.1` refers to the executor. The development server binds to loopback, with debug mode off. Stop it with Ctrl+C.
 
+For a known preview that terminates HTTPS and forwards HTTP to the app, explicitly configure its external browser origin:
+
+```bash
+.venv/bin/python -m augneta serve --port 8000 --public-origin https://preview.example
+```
+
+Replace the example with the preview's actual origin (`scheme://host[:port]`, without a path, credentials, query, or fragment). This permits that one origin in addition to direct access; unrelated origins and cross-site browser requests remain rejected. `Forwarded` and `X-Forwarded-*` headers are never trusted. Host case and default ports are normalized to browser origin serialization; non-default ports must match exactly. Omit the option for ordinary localhost use. The option neither creates a preview route nor changes the loopback binding. See [Cloud route verification](docs/VERIFICATION.md#previewproxy-follow-up) for what was actually available and tested.
+
 Choose a condition and seed, then **Start trial**. Use arrow keys, WASD, or the on-screen buttons. Space or **Pause** freezes simulation time. Leaving the tab pauses and clears held keys. A default trial lasts 30 simulated seconds; slow requests can extend wall time. **Stop trial** preserves an incomplete recording without awarding a score. No participant identifiers are requested.
 
 ## Verify and replay

@@ -20,7 +20,7 @@
     "target_radius": 0.5
   },
   "config_sha256": "39ec81a90e30322dec5b79d13a40f3e9a7f8e5c8f96bf209140672cc77010284",
-  "description": "CPU-only synthetic smoke; not human or physical evidence",
+  "description": "CPU-only synthetic smoke after the preview/proxy fix; not human or physical evidence",
   "hardware_verified": false,
   "human_evidence": false,
   "participant_kind": "synthetic",
@@ -94,11 +94,12 @@
     }
   ],
   "software": {
-    "git_commit": "2cd9fb15d1322fbc75dda51f3bedc35288028727",
+    "git_commit": "9e2c772a81e1a6addf1bb90fdb2eaeafb40ef2ce",
     "package_version": "0.1.0",
     "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
     "python": "3.12.14",
-    "source_sha256": "69fdfe9845ef37a70e32f64b3d088f4b799679daed7ec99b35867d6e05f7b39e",
+    "source_sha256": "f01361b4d0aa963d1b5a90c620cf623c3e2244b70143d9f1a88eeb0bbaab7aa0",
     "working_tree_dirty": true
-  }
+  },
+  "verification_command": ".venv/bin/python -m augneta smoke --out runs/proxy-fix-smoke --seed 7"
 }

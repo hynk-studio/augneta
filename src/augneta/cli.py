@@ -53,12 +53,14 @@ def main(argv=None):
     serve.add_argument("--log-dir", type=Path, default=Path("runs/ui"))
     serve.add_argument("--participant-kind", choices=("developer", "synthetic"), default="developer")
     serve.add_argument("--config", type=Path, help="JSON configuration overrides; seed is selected in the UI")
+    serve.add_argument("--public-origin", help="one trusted preview origin (scheme://host[:port]); forwarded headers remain untrusted")
     args = parser.parse_args(argv)
     try:
         if args.command == "serve":
             from .web import create_app
             config = Config.from_dict(json.loads(args.config.read_text())) if args.config else Config()
-            create_app(args.log_dir, participant_kind=args.participant_kind, config=config).run(
+            create_app(args.log_dir, participant_kind=args.participant_kind, config=config,
+                       public_origin=args.public_origin).run(
                 host="127.0.0.1", port=args.port, debug=False, use_reloader=False)
             return 0
         if args.command == "replay":

@@ -64,6 +64,32 @@ The server runs in the foreground; Ctrl+C stops it. To inspect its response:
 curl --fail http://127.0.0.1:8000/api/health
 ```
 
+When an existing HTTPS preview forwards HTTP to the loopback server, add its
+explicit external origin to the launch command (the hostname below is an example,
+not an observed Cloud URL):
+
+```bash
+.venv/bin/python -m augneta serve --port 8000 --public-origin https://preview.example
+```
+
+Supply exactly `scheme://host[:port]`, with no credentials, path, query, fragment,
+or wildcard. The app accepts that origin and direct request origins, while
+rejecting unrelated origins and `Sec-Fetch-Site: cross-site`. Forwarded headers
+do not configure trust or rewrite Flask's request scheme/host. The same option is
+available as `create_app(public_origin=...)` for an existing WSGI launcher. Keep
+the preview's own access controls: this flag is an origin setting, not a login or
+a tunnel. It does not change the install/resume commands or republish anything.
+
+The follow-up Cloud inspection exposed no usable external preview URL or
+web-port forwarding tool to this session. The environment status reported no
+configured capabilities or runtime variables; no preview/forwarding/tunnel
+variable names were present, and the available Codex CLI help exposed task
+management, not a web-preview command. Local Chromium and loopback HTTP were
+available. The proxy regression is verified using simulated forwarding requests;
+an actual external Cloud HTTPS preview remains unverified. This describes the
+available session interfaces, not a claim that Cloud never supports previews.
+See [the verification record](VERIFICATION.md#previewproxy-follow-up).
+
 Run acceptance checks separately, choosing fresh result directories on every run:
 
 ```bash

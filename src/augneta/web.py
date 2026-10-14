@@ -5,6 +5,7 @@ from pathlib import Path
 import threading
 import time
 import uuid
+from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
@@ -14,7 +15,30 @@ from .experiment import MAIN_CONDITIONS, Trial, evidence
 from .recording import Recorder
 
 
-def create_app(log_root="runs/ui", *, participant_kind="developer", config=None):
+def _normalize_public_origin(origin):
+    """Validate one operator-configured origin, never a request-derived URL."""
+    if origin is None:
+        return None
+    message = "public_origin must be an http(s) origin: scheme://host[:port], without credentials, path, query, or fragment"
+    if (not isinstance(origin, str) or not origin or any(not 33 <= ord(c) <= 126 for c in origin)
+            or any(c in origin for c in "\\*%")):
+        raise ValueError(message)
+    try:
+        url = urlsplit(origin)
+        port = url.port  # Also rejects malformed or out-of-range ports.
+        if (url.scheme not in ("http", "https") or not url.hostname
+                or url.username is not None or url.password is not None or port == 0
+                or url.netloc.endswith(":") or origin != f"{url.scheme}://{url.netloc}"):
+            raise ValueError(message)
+    except ValueError:
+        raise ValueError(message) from None
+    host = f"[{url.hostname}]" if ":" in url.hostname else url.hostname
+    suffix = f":{port}" if port is not None and port != {"http": 80, "https": 443}[url.scheme] else ""
+    return f"{url.scheme}://{host}{suffix}"
+
+
+def create_app(log_root="runs/ui", *, participant_kind="developer", config=None, public_origin=None):
+    public_origin = _normalize_public_origin(public_origin)
     labels = evidence(participant_kind)
     default_config = config or Config()
     app = Flask(__name__, static_folder="static")
@@ -31,13 +55,14 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None)
 
     @app.before_request
     def local_json_requests():
-        # No cross-origin control of a local trial; no permissive CORS headers.
+        # Keep direct access; optionally allow one known preview origin. Forwarded
+        # headers never establish trust or change the request's scheme/host.
         if request.method == "POST":
             if request.headers.get("Sec-Fetch-Site") == "cross-site":
                 return jsonify(error="cross-site control is not allowed"), 403
             origin = request.headers.get("Origin")
-            if origin and origin != request.host_url.rstrip("/"):
-                return jsonify(error="origin does not match this local server"), 403
+            if origin and origin not in (request.host_url.rstrip("/"), public_origin):
+                return jsonify(error="origin does not match this server or its configured public origin"), 403
             if not request.is_json:
                 return jsonify(error="application/json is required"), 415
 
