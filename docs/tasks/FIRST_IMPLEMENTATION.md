@@ -1,6 +1,6 @@
 # First implementation: hidden-flow tracking
 
-Status: planned; no implementation or experiment results yet.
+Status: first software slice implemented for Draft PR review. See [methods](../METHODS.md), [actual verification](../VERIFICATION.md), and [post-merge Cloud update commands](../CLOUD_ENVIRONMENT_UPDATE.md). The acceptance criteria below remain the implementation contract. Software checks do not establish human or physical results.
 
 Implement the first runnable experiment for Augneta in https://github.com/hynk-studio/augneta. Augneta is an independent human–AI sensory augmentation research project.
 
