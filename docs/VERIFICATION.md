@@ -244,3 +244,12 @@ The README and Cloud update document now show the optional explicit-origin
 command, distinguish it from creating a route, and keep ordinary localhost
 launch unchanged. No reusable environment configuration was changed or
 republished, and no participant or physical-output evidence was collected.
+
+PR-description tooling encountered one operational failure: `gh pr edit 1
+--repo hynk-studio/augneta --body-file /tmp/augneta-pr-proxy-body.md` failed because
+the installed GitHub CLI queried the deprecated GraphQL `projectCards` field.
+The description was successfully updated using `gh api --method PATCH
+repos/hynk-studio/augneta/pulls/1 --input /tmp/augneta-pr-proxy-body.json`, with
+a JSON `body` field containing the same Markdown. The response confirmed the PR
+remained open and draft, with `auto_merge=null`. This failure did not affect the
+successful Git push or application verification.
