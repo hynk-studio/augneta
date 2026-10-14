@@ -10,6 +10,8 @@ Augneta는 외부 계산이 제공하는 정보를 인간의 감각·행동 능�
 
 The first runnable software experiment is implemented: deterministic hidden-flow tracking, direct keyboard control, a causal estimator, matched feedback views, recording/replay, and CPU-only synthetic checks. [Verification results](docs/VERIFICATION.md) distinguish automated software checks from human and physical evidence.
 
+PR-02 preparation adds a packet-to-actuator contract, bounded mock output, and reproducible code-identification plans with confusion scoring. [Output and calibration](docs/HAPTIC_OUTPUT_AND_CALIBRATION.md) explains what runs now and what still requires a selected physical device. This is the software portion of PR-02; physical delivery and perceptual calibration remain unverified.
+
 No human learning, embodiment, sensory extension, physical feedback, neural, or consciousness result has been established. The sensory-code display is a development preview, not haptic delivery.
 
 The initial documents were prepared on 2026-10-14 from a protocol drafted on 2026-10-07. This repository is independent of Augnes and does not require its runtime or validation suites.
@@ -90,9 +92,13 @@ Noise, delay, dropout, duration, and the evaluation window can be configured wit
 | --- | --- |
 | [Research protocol](docs/PROJECT_SELECTION_AND_PROTOCOL.md) | Research questions, comparators, evidence boundaries, evaluation, and later experiments; written in Korean |
 | [First implementation task](docs/tasks/FIRST_IMPLEMENTATION.md) | End-to-end scope and acceptance criteria for the first implementation PR |
+| [PR-02 task](docs/tasks/HAPTIC_OUTPUT_AND_CALIBRATION.md) | Physical-output roadmap and the current preparation slice |
+| [Output and calibration](docs/HAPTIC_OUTPUT_AND_CALIBRATION.md) | Executable mock, timing contract, identification plans, and physical acceptance procedure |
+| [Device options](docs/HAPTIC_DEVICE_OPTIONS.md) | Official-source device and browser connection comparison |
 | [Cloud environment setup](docs/tasks/CLOUD_ENVIRONMENT_SETUP.md) | Instructions for preparing a dedicated Codex Cloud environment |
 | [Methods](docs/METHODS.md) | Equations, timing, information boundaries, encoding, metric, and replay contract |
 | [Verification](docs/VERIFICATION.md) | Commands actually run, outcomes, failures, and limits |
+| [PR-02 preparation verification](docs/VERIFICATION_PR02.md) | Actual checks for the output contract and calibration tools |
 | [Cloud environment update](docs/CLOUD_ENVIRONMENT_UPDATE.md) | Exact reusable install/start commands for after merge |
 | [Agent instructions](AGENTS.md) | Repository workflow and research integrity requirements |
 
