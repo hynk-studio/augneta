@@ -13,6 +13,8 @@ from werkzeug.exceptions import HTTPException
 from .config import Config
 from .experiment import MAIN_CONDITIONS, Trial, evidence
 from .recording import Recorder
+from .calibration_session import CalibrationSession
+from .tactile import TactileProfile
 
 
 def _normalize_public_origin(origin):
@@ -46,12 +48,18 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
     session_id = str(uuid.uuid4())
     lock = threading.Lock()
     active = {}
+    calibration = {}
 
     def end_active():
         if active:
             active["recorder"].finish(active["trial"])
 
-    atexit.register(end_active)
+    def cleanup():
+        end_active()
+        if calibration:
+            calibration["session"].stop()
+
+    atexit.register(cleanup)
 
     @app.before_request
     def local_json_requests():
@@ -104,6 +112,69 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
     @app.get("/api/health")
     def health():
         return jsonify(status="ready", **labels)
+
+    @app.get("/calibration")
+    def calibration_page():
+        return send_from_directory(app.static_folder, "calibration.html")
+
+    @app.get("/api/calibration/defaults")
+    def calibration_defaults():
+        return jsonify(profile=TactileProfile().to_dict(), output_mode="visual_rehearsal",
+                       hardware_verified=False, human_evidence=False)
+
+    @app.post("/api/tactile-preview")
+    def tactile_preview():
+        data = payload(("profile", "direction", "level"))
+        profile = TactileProfile.from_dict(data["profile"]) if "profile" in data else TactileProfile()
+        return jsonify(profile.matched_preview(profile.spec.code(data.get("direction"), data.get("level"))))
+
+    @app.post("/api/calibration/start")
+    def calibration_start():
+        data = payload(("profile", "seed"))
+        profile = TactileProfile.from_dict(data["profile"]) if "profile" in data else TactileProfile()
+        with lock:
+            session = CalibrationSession(Path(log_root) / "calibration", profile,
+                                         data.get("seed", 7), participant_kind)
+            if calibration:
+                calibration["session"].stop()
+            calibration["session"] = session
+            return jsonify(session.view())
+
+    def selected_calibration(data):
+        session = calibration.get("session")
+        if session is None or data.get("session_id") != session.id:
+            raise ValueError("unknown or superseded calibration session")
+        return session
+
+    @app.post("/api/calibration/present")
+    def calibration_present():
+        data = payload(("session_id", "expected_index"))
+        with lock:
+            return jsonify(selected_calibration(data).present(data.get("expected_index")))
+
+    @app.post("/api/calibration/respond")
+    def calibration_respond():
+        data = payload(("session_id", "expected_index", "response"))
+        with lock:
+            return jsonify(selected_calibration(data).respond(data.get("expected_index"), data.get("response")))
+
+    @app.post("/api/calibration/freeze")
+    def calibration_freeze():
+        data = payload(("session_id", "profile"))
+        profile = TactileProfile.from_dict(data.get("profile"))
+        with lock:
+            return jsonify(selected_calibration(data).freeze(profile))
+
+    @app.post("/api/calibration/stop")
+    def calibration_stop():
+        data = payload(("session_id",))
+        with lock:
+            return jsonify(selected_calibration(data).stop())
+
+    @app.get("/api/calibration/<identifier>/export")
+    def calibration_export(identifier):
+        with lock:
+            return jsonify(selected_calibration({"session_id": identifier}).export())
 
     @app.post("/api/trials")
     def start():

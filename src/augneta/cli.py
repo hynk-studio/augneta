@@ -40,7 +40,7 @@ def run_smoke(directory, config, *, oracle=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Augneta development experiment; no hardware or human-study claims")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("smoke", "oracle-smoke"):
+    for name in ("smoke", "oracle-smoke", "haptic-smoke"):
         command = commands.add_parser(name)
         command.add_argument("--out", type=Path, required=True, help="new output directory (never overwritten)")
         command.add_argument("--seed", type=int, help="override config seed (default config uses 7)")
@@ -48,6 +48,10 @@ def main(argv=None):
         command.add_argument("--output", default="software", choices=("software", "hardware"))
     replay_parser = commands.add_parser("replay")
     replay_parser.add_argument("directory", type=Path)
+    calibration = commands.add_parser("calibration-plan", help="unadministered, operator-only code identification plan")
+    calibration.add_argument("--out", type=Path, required=True)
+    calibration.add_argument("--seed", type=int, default=7)
+    calibration.add_argument("--blocks", type=int, default=2)
     serve = commands.add_parser("serve")
     serve.add_argument("--port", type=int, default=8000)
     serve.add_argument("--log-dir", type=Path, default=Path("runs/ui"))
@@ -63,7 +67,10 @@ def main(argv=None):
                        public_origin=args.public_origin).run(
                 host="127.0.0.1", port=args.port, debug=False, use_reloader=False)
             return 0
-        if args.command == "replay":
+        if args.command == "calibration-plan":
+            from .haptic_bench import write_calibration_plan
+            result = write_calibration_plan(args.out, seed=args.seed, blocks=args.blocks)
+        elif args.command == "replay":
             result = replay(args.directory)
         else:
             require_software_output(args.output)
@@ -72,7 +79,12 @@ def main(argv=None):
                 raise ValueError("config must be a JSON object")
             if args.seed is not None:
                 values["seed"] = args.seed
-            result = run_smoke(args.out, Config.from_dict(values), oracle=args.command == "oracle-smoke")
+            config = Config.from_dict(values)
+            if args.command == "haptic-smoke":
+                from .haptic_bench import run_haptic_smoke
+                result = run_haptic_smoke(args.out, config)
+            else:
+                result = run_smoke(args.out, config, oracle=args.command == "oracle-smoke")
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
         return 0
     except (ValueError, OSError, KeyError, TypeError) as error:

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Augneta · Calibration rehearsal</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/calibration.css">
+  <script type="module" src="/static/calibration.js"></script>
+</head>
+<body><main>
+  <header><a class="wordmark" href="/">augneta<span> / calibration rehearsal</span></a>
+    <span class="badge">Screen preview · no vibration</span></header>
+  <section class="intro"><p class="eyebrow">PREPARE YOUR INTERFACE</p>
+    <h1>Explore the pattern.<br>Keep the meaning.</h1>
+    <p>Try the response and profile workflow on screen. These motor slots are schematic;
+      they do not establish skin position or tactile discrimination.</p></section>
+  <p class="note">This is a visual rehearsal. The profile remains an unvalidated hardware candidate,
+    even with perfect answers. No device is connected.</p>
+  <section class="cal-grid">
+    <div class="cal-panel">
+      <h2>1. Candidate profile</h2>
+      <p id="code-description"></p>
+      <fieldset id="profile-fields"><legend>Command gains and timing</legend>
+        <div id="gains" class="gains"></div>
+        <div class="timings"><label>Pulse preview (ms)<input id="pulse" type="number" min="50" max="1000" step="1" value="150"></label>
+          <label>Gap (ms)<input id="gap" type="number" min="50" max="2000" step="1" value="150"></label></div>
+      </fieldset>
+      <label class="import-label">Load profile or session JSON<input id="profile-file" type="file" accept=".json,application/json"></label>
+      <div class="cal-actions"><button id="start-cal">Start fit block</button><button id="save-profile" class="secondary">Export candidate</button></div>
+      <p class="muted">Adjust gains before starting, or after the fit block. Meaning and patterns stay fixed during a session.</p>
+    </div>
+    <div class="cal-panel">
+      <h2>2. View and respond</h2>
+      <p id="progress-label">Load the default profile to begin.</p>
+      <div class="sleeves" aria-label="Schematic motor command preview">
+        <div><h3>Left slots</h3><div id="left-slots" class="slots"></div></div>
+        <div><h3>Right slots</h3><div id="right-slots" class="slots"></div></div>
+      </div>
+      <p class="muted">D0 points right; directions continue counterclockwise in equal steps.
+        The default candidate uses one slot per direction, left then right.</p>
+      <button id="present" disabled>Show next pattern</button>
+      <fieldset id="response-fields" disabled><legend>Your response</legend>
+        <div class="timings"><label>Direction<select id="response-direction"></select></label>
+          <label>Magnitude level<select id="response-level"></select></label></div>
+        <div class="cal-actions"><button id="respond">Record choice</button>
+          <button id="zero" class="secondary">No pattern</button><button id="unknown" class="secondary">Cannot identify</button></div>
+      </fieldset>
+      <div class="cal-actions"><button id="freeze" hidden>Freeze profile &amp; start validation</button>
+        <button id="stop-cal" class="secondary" disabled>Stop &amp; preserve responses</button></div>
+    </div>
+  </section>
+  <p id="cal-status" class="status" role="status" aria-live="polite">Loading…</p>
+  <section class="cal-panel report"><h2>3. Separate fit and validation</h2>
+    <p>The fit report becomes available after its block. Validation responses never tune the frozen profile.</p>
+    <div id="reports" class="cal-grid"></div>
+    <button id="export-session" disabled>Export session record</button>
+  </section>
+  <footer><p>Software workflow only · no tactile calibration or learning evidence.</p>
+    <p>Screen timing and server response intervals are not skin stimulus timing or perceptual reaction time.
+      Responses are saved on the running server. Downloaded records stay under your control.</p>
+    <p><a href="/">Return to hidden-flow tracking</a></p></footer>
+</main></body></html>
