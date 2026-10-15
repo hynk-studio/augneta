@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .calibration import calibration_plan
 from .config import canonical
-from .experiment import Trial, evidence, synthetic_action
+from .experiment import SYNTHETIC_POLICY_ID, Trial, evidence, synthetic_action
 from .haptics import MockOutput, OutputProfile
 from .recording import Recorder, replay, software_identity, write_json
 
@@ -30,7 +30,7 @@ def run_haptic_smoke(directory, config):
     epoch = output.arm(0)
     trial = Trial(config, "sensory_preview")
     recorder = Recorder(directory / "tracking", trial, participant_kind="synthetic",
-                        policy_id="visible-pd-v1")
+                        policy_id=SYNTHETIC_POLICY_ID)
     previous_step = -1
     packets = 0
     try:

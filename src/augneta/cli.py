@@ -7,7 +7,7 @@ import sys
 import uuid
 
 from .config import Config
-from .experiment import MAIN_CONDITIONS, ORACLE_CONDITION, Trial, require_software_output, synthetic_action
+from .experiment import SYNTHETIC_POLICY_ID, MAIN_CONDITIONS, ORACLE_CONDITION, Trial, require_software_output, synthetic_action
 from .recording import Recorder, replay, write_json
 
 
@@ -20,7 +20,7 @@ def run_smoke(directory, config, *, oracle=False):
     for condition in conditions:
         trial = Trial(config, condition, oracle=oracle)
         recorder = Recorder(directory / condition, trial, participant_kind="synthetic",
-                            session_id=session_id, policy_id="visible-pd-v1")
+                            session_id=session_id, policy_id=SYNTHETIC_POLICY_ID)
         try:
             while not trial.complete:
                 action = synthetic_action(trial.view(), config.control_gain)
@@ -46,6 +46,8 @@ def main(argv=None):
         command.add_argument("--seed", type=int, help="override config seed (default config uses 7)")
         command.add_argument("--config", type=Path, help="JSON configuration overrides")
         command.add_argument("--output", default="software", choices=("software", "hardware"))
+    diagnostic = commands.add_parser("sensitivity", help="frozen CPU-only paired task diagnostic")
+    diagnostic.add_argument("--out", type=Path, required=True)
     replay_parser = commands.add_parser("replay")
     replay_parser.add_argument("directory", type=Path)
     calibration = commands.add_parser("calibration-plan", help="unadministered, operator-only code identification plan")
@@ -67,7 +69,10 @@ def main(argv=None):
                        public_origin=args.public_origin).run(
                 host="127.0.0.1", port=args.port, debug=False, use_reloader=False)
             return 0
-        if args.command == "calibration-plan":
+        if args.command == "sensitivity":
+            from .sensitivity import run_diagnostic
+            result = run_diagnostic(args.out)
+        elif args.command == "calibration-plan":
             from .haptic_bench import write_calibration_plan
             result = write_calibration_plan(args.out, seed=args.seed, blocks=args.blocks)
         elif args.command == "replay":
