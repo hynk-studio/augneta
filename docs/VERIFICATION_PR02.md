@@ -4,6 +4,10 @@ Date: 2026-10-14. This record covers the software preparation portion of
 [PR-02](tasks/HAPTIC_OUTPUT_AND_CALIBRATION.md), not completed physical output or
 perceptual calibration. All executed trials used synthetic data.
 
+This is the historical eight-slot preparation record at `2dc691a`. Later six-slot
+and calibration-UI checks are in [pre-arrival verification](VERIFICATION_PREARRIVAL.md).
+Statements below about absent UI describe that earlier revision.
+
 ## Checkout and installation
 
 - Fresh checkout of `hynk-studio/augneta`, current `main` at

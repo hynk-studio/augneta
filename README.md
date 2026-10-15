@@ -10,9 +10,13 @@ Augneta는 외부 계산이 제공하는 정보를 인간의 감각·행동 능�
 
 The first runnable software experiment is implemented: deterministic hidden-flow tracking, direct keyboard control, a causal estimator, matched feedback views, recording/replay, and CPU-only synthetic checks. [Verification results](docs/VERIFICATION.md) distinguish automated software checks from human and physical evidence.
 
-PR-02 preparation adds a packet-to-actuator contract, bounded mock output, and reproducible code-identification plans with confusion scoring. [Output and calibration](docs/HAPTIC_OUTPUT_AND_CALIBRATION.md) explains what runs now and what still requires a selected physical device. This is the software portion of PR-02; physical delivery and perceptual calibration remain unverified.
+PR-02 preparation includes the original eight-slot mock plus a new device-independent state code, six-slot TactSleeve command representation, and a browser calibration rehearsal with separate fit/validation blocks and candidate-profile export/import. Open `/calibration` on the running local server. [Pre-arrival preparation](docs/PREARRIVAL_PREPARATION.md) explains the workflow and Windows/macOS setup. Physical delivery and perceptual calibration remain unverified.
 
 No human learning, embodiment, sensory extension, physical feedback, neural, or consciousness result has been established. The sensory-code display is a development preview, not haptic delivery.
+
+As of 2026-10-15, the next physical experiment is planned around a **TactSleeve pair**. The goal remains a learnable sensory interface with transfer and retention evidence; efficient personal calibration and recalibration support that goal. Pre-arrival software development is authorized: separate semantic state from device output, build the calibration workflow, then inspect task sensitivity and transfer support. Physical calibration and learning measurements wait for the device. Purchase, arrival, connection, and physical performance have not been verified. See the [TactSleeve plan and resume task](docs/tasks/TACTSLEEVE_INTEGRATION.md).
+
+[Draft PR #2](https://github.com/hynk-studio/augneta/pull/2) carries this unmerged preparation and incorporates [plan PR #3](https://github.com/hynk-studio/augneta/pull/3). The legacy eight-slot experiment remains reproducible; the new six-slot workflow uses its own configurable semantic code. No hardware driver is enabled. The existing [ChatGPT Site](https://augneta-lab.hynk1240.chatgpt.site) remains the earlier demo; these changes have not been deployed there.
 
 The initial documents were prepared on 2026-10-14 from a protocol drafted on 2026-10-07. This repository is independent of Augnes and does not require its runtime or validation suites.
 
@@ -91,6 +95,9 @@ Noise, delay, dropout, duration, and the evaluation window can be configured wit
 | Document | Purpose |
 | --- | --- |
 | [Research protocol](docs/PROJECT_SELECTION_AND_PROTOCOL.md) | Research questions, comparators, evidence boundaries, evaluation, and later experiments; written in Korean |
+| [TactSleeve plan and arrival task](docs/tasks/TACTSLEEVE_INTEGRATION.md) | Pre-arrival development and physical work to begin after arrival |
+| [Pre-arrival preparation](docs/PREARRIVAL_PREPARATION.md) | Six-slot candidate profiles, calibration rehearsal, and Windows/macOS launch instructions |
+| [Pre-arrival verification](docs/VERIFICATION_PREARRIVAL.md) | Actual software checks and remaining browser/device limitations |
 | [First implementation task](docs/tasks/FIRST_IMPLEMENTATION.md) | End-to-end scope and acceptance criteria for the first implementation PR |
 | [PR-02 task](docs/tasks/HAPTIC_OUTPUT_AND_CALIBRATION.md) | Physical-output roadmap and the current preparation slice |
 | [Output and calibration](docs/HAPTIC_OUTPUT_AND_CALIBRATION.md) | Executable mock, timing contract, identification plans, and physical acceptance procedure |

@@ -8,6 +8,9 @@ The later [PR-02 preparation verification](VERIFICATION_PR02.md) covers the mock
 output contract and calibration-plan tools. The results here remain the historical
 PR-01 record and are not evidence for a physical adapter.
 
+The [pre-arrival verification](VERIFICATION_PREARRIVAL.md) records the later six-slot
+representation and calibration rehearsal separately.
+
 The [preview/proxy follow-up](#previewproxy-follow-up) records the latest checks
 and current result provenance. The initial implementation checks below are
 retained as history for commit `9e2c772a81e1a6addf1bb90fdb2eaeafb40ef2ce`.

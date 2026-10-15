@@ -3,7 +3,12 @@
 2026-10-14 공식 문서 확인. 아래는 설계 검토이며 구매·연결·출력 결과가 아니다.
 소프트웨어 준비의 범위는 [PR-02 과제](tasks/HAPTIC_OUTPUT_AND_CALIBRATION.md)에 있다.
 
-## 선택 제안
+**2026-10-15 후속 결정:** 첫 계획 장치를 TactSleeve 한 쌍으로 변경했다.
+현재 선택과 PC 실행 경로는 [TactSleeve 명세](tasks/TACTSLEEVE_INTEGRATION.md)와
+[선행 개발 안내](PREARRIVAL_PREPARATION.md)를 따른다. 아래 Air 우선·8개 독립 위치
+제안과 가격은 당시 검토 기록이며 현재 구매 권고나 구현의 필수 조건이 아니다.
+
+## 이전 선택 제안
 
 **기성품 첫 검토 후보는 bHaptics TactSuit Air**로 한다. 8개 논리 채널을
 물리적으로 다른 위치에 배정할 수 있는지 확인하는 데 필요한 출력점 수와
@@ -26,7 +31,7 @@ Air의 SDK 인덱스는 16개 연속 슬롯이 아니다. 공식 motor-index 문
 현재 mock의 `0–7`을 실제 Air에 그대로 보내면 안 된다. 이 PR은 실물 프로파일을
 하드코딩하지 않는다. 방향과 신체 위치의 대응은 교정 후 별도 프로파일로 고정한다.
 
-## 웹 사용 경로
+## 이전에 검토한 웹 사용 경로
 
 공식 `tact-js`는 브라우저용 SDK지만, bHaptics Player 설치·실행과 장치 연결을
 전제로 한다. 공식 JavaScript 가이드는 Windows 10/11 x64 또는 Apple Silicon
