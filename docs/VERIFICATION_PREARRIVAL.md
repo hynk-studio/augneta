@@ -63,7 +63,15 @@ tactile performance. All generated records remain outside Git.
 - Existing origin/content-type restrictions also cover the new routes.
 - Clearing the visual output and rejecting a late presentation after page hiding.
 
-## Remaining checks and limits
+## Later integration status
+
+The [six-slot task integration](SIX_SLOT_TASK_INTEGRATION.md) subsequently connects
+candidate export/import to both direct-control tasks and a common presentation
+schedule. Its [separate verification](VERIFICATION_SIX_SLOT_TASK_INTEGRATION.md)
+records real Chromium checks. The counts and mock-DOM evidence above remain the
+historical pre-arrival verification; they are not recast as browser evidence.
+
+## Remaining checks and limits (at this verification snapshot)
 
 No new automated failures remain in the checks above. A supported real browser
 was not available here; actual rendering, browser event timing, human usability,
@@ -78,7 +86,7 @@ capacity, trial counts, or comfortable stimulation settings. Profiles remain
 `human_evidence=false`. Synthetic and developer visual responses have distinct
 provenance labels.
 
-The new six-slot path is not yet connected to the tracking task's presentation
+At this historical snapshot the new six-slot path was not yet connected to the tracking task's presentation
 schedule. Uncertainty/age/dropout remain in the original task. Selective
 calibration algorithms, task sensitivity/transfer support, and physical/human
 studies are later work in the [plan](tasks/TACTSLEEVE_INTEGRATION.md).

@@ -8,6 +8,7 @@ from .estimation import Belief, CausalEstimator, ESTIMATORS
 from .feedback import Encoder, ENCODERS, decode_force
 from .metrics import tracking_error, safe_zone_error
 from .simulation import World, clip, validate_action
+from .task_presentation import CONDITIONS as SIX_SLOT_CONDITIONS, SixSlotSchedule, import_candidate
 
 
 MAIN_CONDITIONS = ("none", "dashboard", "sensory_preview")
@@ -44,11 +45,19 @@ class ChangeEvent:
 
 
 class Trial:
-    def __init__(self, config: Config, condition, *, changes=(), oracle=False):
-        if condition not in MAIN_CONDITIONS and not (oracle and condition == ORACLE_CONDITION):
+    def __init__(self, config: Config, condition, *, changes=(), oracle=False, candidate=None):
+        if condition not in MAIN_CONDITIONS + SIX_SLOT_CONDITIONS and not (oracle and condition == ORACLE_CONDITION):
             raise ValueError("unknown condition; oracle requires explicit diagnostic access")
         if oracle != (condition == ORACLE_CONDITION):
             raise ValueError("oracle and main conditions must remain separate")
+        six_slot = condition in SIX_SLOT_CONDITIONS
+        if not six_slot and candidate is not None:
+            raise ValueError("candidate profiles require an explicit six-slot condition")
+        profile = import_candidate(candidate) if six_slot else None
+        self.candidate = json.loads(canonical(candidate)) if six_slot else None
+        self.presentation = SixSlotSchedule(profile, config.dt_s) if six_slot else None
+        if six_slot and changes:
+            raise ValueError("six-slot trial freezes profile, code and estimator for its duration")
         self.config = config
         self.condition = condition
         self.diagnostic = oracle
@@ -95,7 +104,9 @@ class Trial:
         else:
             self.__belief = self.__estimator.update(self.step, self.__observations)
         # Version changes cause a logged immediate emission, equally in both displays.
-        if self.step % self.config.feedback_period_steps == 0 or self.__events:
+        if self.presentation:
+            self.__packet = self.presentation.packet(self.__belief)
+        elif self.step % self.config.feedback_period_steps == 0 or self.__events:
             self.__packet = self.__encoder.encode(self.__belief)
 
     def view(self):
@@ -109,11 +120,24 @@ class Trial:
         return {"visible": visible,
                 "task": self.config.task, "objective": objective, "condition": self.condition,
                 "diagnostic": self.diagnostic, "complete": self.complete,
-                "feedback": self.__packet.to_dict() if self.condition != "none" else None}
+                "feedback": self.packet() if self.condition != "none" else None}
+
+    def packet(self):
+        return json.loads(canonical(self.__packet)) if self.presentation else self.__packet.to_dict()
+
+    def transition(self, action, expected_epoch=None):
+        if not self.presentation:
+            raise ValueError("explicit presentation lifecycle is for six-slot trials")
+        self.presentation.transition(action, self.step, expected_epoch)
+        self.__packet = self.presentation.packet(self.__belief)
+        return {"action": action, "at_step": self.step, "expected_epoch": expected_epoch,
+                "packet": self.packet()}
 
     def advance(self, action):
         if self.complete:
             raise ValueError("trial is already complete")
+        if self.presentation and self.presentation.lifecycle != 'running':
+            raise ValueError("presentation paused or stopped; no action can advance")
         action = validate_action(action)
         before = self.__world.visible().to_dict()
         evaluation = self.__world.evaluation_only()
@@ -123,12 +147,17 @@ class Trial:
         record = {"step": before["step"], "time_s": before["time_s"],
                   "visible_before": before, "visible_after": after,
                   "sensor_observations": [asdict(o) for o in self.__observations],
-                  "belief": asdict(self.__belief), "feedback_packet": self.__packet.to_dict(),
+                  "belief": asdict(self.__belief), "feedback_packet": self.packet(),
                   "action": list(action), "applied_action": list(action),
                   "intended_feedback": intended, "output_acknowledgement": None,
                   "events": self.__events}
         if not self.complete:
             self.__prepare()
+        if self.presentation:
+            if self.complete:
+                self.__packet = self.presentation.packet(self.__belief, complete=True)
+                self.__packet['step'] = self.step
+            record['presentation_after'] = self.packet()
         # JSON-shaped values make serialized and in-memory comparisons identical.
         return json.loads(canonical(record)), evaluation
 

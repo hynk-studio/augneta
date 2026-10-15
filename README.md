@@ -128,6 +128,21 @@ not establish human response savings or physical calibration. This step depends
 on [Draft PR #4](https://github.com/hynk-studio/augneta/pull/4); the existing Site
 and manual workflow are unchanged.
 
+## Six-slot task rehearsal (software preparation for plan 5.3)
+
+Export a candidate from `/calibration`, then select **6-direction dashboard** or
+**6-slot commands — software rehearsal** on `/` and import that JSON explicitly.
+The profile is checked and frozen at trial start for target tracking or safe-zone
+maintenance. Both views share one pulse/gap schedule and visual uncertainty,
+sensor-age/dropout/staleness status. Pause, expiry, stop and page exit clear output;
+direct controls and deterministic recording/replay remain available.
+
+See the [connected workflow and time contract](docs/SIX_SLOT_TASK_INTEGRATION.md)
+and [actual verification](docs/VERIFICATION_SIX_SLOT_TASK_INTEGRATION.md).
+This is a dependent Draft on #5, following #2 (including plan #3) → #4 → #5.
+These unmerged features are absent from main and the existing Site. Physical
+steps 5.1/5.2/5.3, perception and learning remain unverified.
+
 ## Start here
 
 | Document | Purpose |

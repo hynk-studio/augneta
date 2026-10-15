@@ -32,6 +32,8 @@
           <option value="none">A · No additional information</option>
           <option value="dashboard">B · Matched visual dashboard</option>
           <option value="sensory_preview">C · Sensory code — development preview</option>
+          <option value="six_slot_dashboard">D · 6-direction dashboard — software rehearsal</option>
+          <option value="six_slot_preview">E · 6-slot commands — software rehearsal</option>
         </select>
       </label>
       <label class="seed">Simulation seed
@@ -39,6 +41,10 @@
       </label>
       <button id="start" type="submit" disabled>Start trial <span aria-hidden="true">↗</span></button>
     </form>
+    <section id="candidate-setting" hidden>
+      <label>Import an exported calibration candidate JSON<input id="candidate-file" type="file" accept=".json,application/json"></label>
+      <p id="candidate-status" class="note">Choose a candidate from the calibration rehearsal. It is frozen at trial start; no physical calibration is implied.</p>
+    </section>
     <p id="objective" role="status">Tracking: follow the orange ring. Safe zone: stay inside the green square, including its boundary.</p>
     <section class="experiment">
       <div class="arena-panel">

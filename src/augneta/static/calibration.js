@@ -136,14 +136,15 @@ $('stop-cal').onclick = () => run(async () => {
 $('save-profile').onclick = () => run(async () => {
   const candidate = session && !['complete','stopped','review'].includes(session.state) ? session.profile : editedProfile();
   // Validate imported/edited data on the server before exporting a candidate.
-  await api('/api/tactile-preview', {profile:candidate, direction:null, level:0});
-  download('augneta-candidate-profile.json', {profile:candidate, profile_status:'unvalidated_hardware_candidate', hardware_verified:false, human_evidence:false});
+  const envelope = await api('/api/candidate-profile', {profile:candidate});
+  download('augneta-candidate-profile.json', envelope);
 });
 $('export-session').onclick = () => download('augneta-calibration-rehearsal.json', exportRecord);
 $('profile-file').onchange = () => run(async () => {
   const file = $('profile-file').files[0]; if (!file) return;
   if (file.size > 100000) throw new Error('Profile file is too large.');
   const data = JSON.parse(await file.text()); const candidate = data.profile || data;
+  if (data.kind === 'tactile_candidate') await api('/api/candidate-import', {candidate:data, scope:'calibration'});
   await api('/api/tactile-preview', {profile:candidate, direction:null, level:0});
   setProfile(candidate); $('cal-status').textContent = 'Candidate loaded. Start a new fit block to rehearse it.';
   $('profile-file').value = '';
