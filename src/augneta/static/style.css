@@ -54,3 +54,12 @@ footer { font-size: 10px; color: var(--muted); margin-top: 26px; max-width: 900p
   .feedback-panel { padding: 20px; }#feedback { max-width: 220px; }.setup { flex-wrap: wrap; }.setup label:first-child { flex-basis: 100%; }
   .control-row { flex-wrap: wrap; }.control-row > div:first-child { flex-basis: 100%; }.result { flex-wrap: wrap; gap: 10px; }
 }
+
+#candidate-file { width: 100%; max-width: 520px; }
+#candidate-status { overflow-wrap: anywhere; }
+.setup label { max-width: 100%; }
+
+/* Blanking information must not move the direct-control buttons under a pointer. */
+.six-slot-layout #telemetry { height: 220px; }
+.six-slot-layout #telemetry[hidden] { display: block !important; visibility: hidden; }
+.six-slot-layout .feedback-value { min-height: 40px; }

@@ -15,6 +15,7 @@ from .experiment import MAIN_CONDITIONS, Trial, evidence
 from .recording import Recorder
 from .calibration_session import CalibrationSession
 from .tactile import TactileProfile
+from .task_presentation import CONDITIONS as SIX_SLOT_CONDITIONS, export_candidate, import_candidate
 
 
 def _normalize_public_origin(origin):
@@ -49,6 +50,8 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
     lock = threading.Lock()
     active = {}
     calibration = {}
+    cancelled_starts = set()
+    used_starts = set()
 
     def end_active():
         if active:
@@ -128,6 +131,20 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
         profile = TactileProfile.from_dict(data["profile"]) if "profile" in data else TactileProfile()
         return jsonify(profile.matched_preview(profile.spec.code(data.get("direction"), data.get("level"))))
 
+    @app.post('/api/candidate-profile')
+    def candidate_profile():
+        data = payload(('profile',))
+        return jsonify(export_candidate(TactileProfile.from_dict(data.get('profile')), participant_kind))
+
+    @app.post('/api/candidate-import')
+    def candidate_import():
+        data = payload(('candidate', 'scope'))
+        if data.get('scope', 'task') not in ('task', 'calibration'):
+            raise ValueError('unknown candidate scope')
+        profile = import_candidate(data.get('candidate'), for_task=data.get('scope', 'task') == 'task')
+        return jsonify(profile_sha256=profile.identity, code_id=profile.spec.identity,
+                       profile_status='unvalidated_hardware_candidate')
+
     @app.post("/api/calibration/start")
     def calibration_start():
         data = payload(("profile", "seed"))
@@ -182,24 +199,55 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
                        safe_zone_half_width=default_config.safe_zone_half_width,
                        arena_half_width=default_config.arena_half_width)
 
+    def validate_start_id(value):
+        if not isinstance(value, str):
+            raise ValueError('start ID must be a UUID')
+        try:
+            if str(uuid.UUID(value)) != value:
+                raise ValueError('noncanonical start ID')
+        except (ValueError, AttributeError):
+            raise ValueError('start ID must be a UUID') from None
+
+    @app.post('/api/cancel-start')
+    def cancel_start():
+        data = payload(('start_id',))
+        identifier = data.get('start_id')
+        validate_start_id(identifier)
+        with lock:
+            cancelled_starts.add(identifier)
+            if active and active['id'] == identifier:
+                active['stopped'] = True
+                active['recorder'].finish(active['trial'])
+            return jsonify(cancelled=True)
+
     @app.post("/api/trials")
     def start():
-        data = payload(("condition", "seed", "task", "safe_zone_half_width"))
+        data = payload(("condition", "seed", "task", "safe_zone_half_width", "candidate", "start_id"))
         condition = data.get("condition", "none")
-        if condition not in MAIN_CONDITIONS:
+        if condition not in MAIN_CONDITIONS + SIX_SLOT_CONDITIONS:
             raise ValueError("only main development conditions are available in the UI")
         settings = default_config.to_dict()
         settings["seed"] = data.get("seed", settings["seed"])
         for key in ("task", "safe_zone_half_width"):
             if key in data:
                 settings[key] = data[key]
-        trial = Trial(Config.from_dict(settings), condition)
+        start_id = data.get('start_id')
+        if start_id is not None:
+            validate_start_id(start_id)
+            if condition not in SIX_SLOT_CONDITIONS:
+                raise ValueError('start ID requires six-slot rehearsal')
+        trial = Trial(Config.from_dict(settings), condition, candidate=data.get("candidate"))
         with lock:
+            if start_id is not None:
+                if start_id in cancelled_starts or start_id in used_starts:
+                    raise ValueError('cancelled or duplicate start ID')
+                used_starts.add(start_id)
             end_active()
-            identifier = str(uuid.uuid4())
+            identifier = start_id or str(uuid.uuid4())
             recorder = Recorder(Path(log_root) / session_id / identifier, trial,
                                 participant_kind=participant_kind, session_id=session_id)
             active.update(trial=trial, recorder=recorder, id=identifier, stopped=False)
+            recorder.transport("start", trial)
             return jsonify(view())
 
     def selected(data):
@@ -208,10 +256,13 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
 
     @app.post("/api/step")
     def step():
-        data = payload(("trial_id", "expected_step", "action"))
+        data = payload(("trial_id", "expected_step", "action", "presentation_epoch"))
         with lock:
             selected(data)
             trial = active["trial"]
+            if trial.presentation and (type(data.get('presentation_epoch')) is not int or
+                    data['presentation_epoch'] != trial.presentation.epoch):
+                raise ValueError('stale presentation epoch')
             if active["stopped"]:
                 raise ValueError("trial was stopped; start a new trial")
             if type(data.get("expected_step")) is not int or data["expected_step"] != trial.step:
@@ -219,11 +270,25 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
             started = time.monotonic()
             record, truth = trial.advance(data.get("action"))
             active["recorder"].append(record, truth)
+            active["recorder"].transport("step", trial)
             if trial.complete:
                 active["recorder"].finish(trial)
             result = view()
             result["server_processing_ms"] = (time.monotonic() - started) * 1000
             return jsonify(result)
+
+    @app.post('/api/presentation-lifecycle')
+    def presentation_lifecycle():
+        data = payload(('trial_id', 'action', 'expected_epoch'))
+        with lock:
+            selected(data)
+            if active['trial'].complete and active['trial'].presentation:
+                return jsonify(view())
+            active['recorder'].transition(active['trial'], data.get('action'), data.get('expected_epoch'))
+            if data['action'] == 'stop':
+                active['stopped'] = True
+                active['recorder'].finish(active['trial'])
+            return jsonify(view())
 
     @app.post("/api/stop")
     def stop():

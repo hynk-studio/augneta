@@ -1,3 +1,4 @@
+import {isSix, clearSix, showSix} from './six_slot.js';
 const $ = (id) => document.getElementById(id);
 const arena = $("arena");
 const feedbackCanvas = $("feedback");
@@ -11,6 +12,8 @@ let timer = null;
 let ready = false;
 let starting = false;
 let arenaHalfWidth = 1;
+let candidate = null, generation = 0, presentationRequestStarted = 0, pendingStartId = null;
+let controlQueue = Promise.resolve(), controlPending = 0, stopping = false, mustStop = false;
 
 function describeTask(task, halfWidth) {
   const safe = task === "safe_zone";
@@ -29,6 +32,7 @@ function describeTask(task, halfWidth) {
 
 function setupChanged() {
   $("zone-setting").hidden = $("task").value !== "safe_zone";
+  $("candidate-setting").hidden = !isSix($("condition").value);
   controls();
   if (!running && !starting) {
     state = null;
@@ -40,6 +44,7 @@ function setupChanged() {
 
 async function post(path, data) {
   const response = await fetch(path, {
+    signal: AbortSignal.timeout(5000),
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
   });
   const result = await response.json();
@@ -128,6 +133,7 @@ function drawFeedback(packet, condition) {
 }
 
 function showCondition(condition, packet) {
+  feedbackCanvas.closest('.feedback-panel').classList.remove('six-slot-layout');
   const preview = condition === "sensory_preview";
   $("feedback-title").textContent = condition === "none" ? "No additional information" : preview ? "Sensory code preview" : "Estimated environmental force";
   $("feedback-description").textContent = condition === "none" ? "Use your point’s motion and the selected objective."
@@ -148,8 +154,13 @@ function showCondition(condition, packet) {
 
 function render() {
   drawArena();
-  if (!state) { showCondition($("condition").value, null); return; }
-  showCondition(state.condition, state.feedback);
+  if (!state) {
+    if (isSix($("condition").value)) showSix({condition:$("condition").value}, 0, false);
+    else showCondition($("condition").value, null);
+    return;
+  }
+  if (isSix(state.condition)) showSix(state, presentationRequestStarted, running && !paused && !document.hidden && !state.complete);
+  else showCondition(state.condition, state.feedback);
   describeTask(state.task, state.objective.half_width);
   $("clock").textContent = `${state.visible.time_s.toFixed(2)} / ${(state.total_steps * state.dt_s).toFixed(2)} s`;
   $("progress").max = state.total_steps; $("progress").value = state.visible.step;
@@ -159,14 +170,15 @@ function render() {
 }
 
 function controls() {
-  const locked = running || starting || !ready;
-  $("start").disabled = locked;
+  const locked = running || starting || !ready || controlPending > 0;
+  $("start").disabled = locked || (isSix($("condition").value) && !candidate);
+  $("candidate-file").disabled = locked;
   $("condition").disabled = locked;
   $("seed").disabled = locked;
   $("task").disabled = locked;
   $("zone-size").disabled = locked || $("task").value !== "safe_zone";
-  $("pause").disabled = !running;
-  $("stop").disabled = !running;
+  $("pause").disabled = !running || controlPending > 0 || stopping || mustStop;
+  $("stop").disabled = !running || stopping;
   $("pause").textContent = paused ? "Resume" : "Pause";
 }
 
@@ -188,63 +200,132 @@ function action() {
 }
 
 async function tick() {
-  if (!running || paused || inFlight) return;
-  inFlight = true;
-  const started = performance.now();
+  if (!running || paused || inFlight || controlPending) return;
+  const requestToken = {}; inFlight = requestToken;
+  const token = generation, id = state.trial_id, started = performance.now();
   try {
-    state = await post("/api/step", { trial_id: state.trial_id, expected_step: state.visible.step, action: action() });
-    render();
+    const data = {trial_id:id, expected_step:state.visible.step, action:action()};
+    if (isSix(state.condition)) data.presentation_epoch = state.feedback.epoch;
+    const next = await post('/api/step', data);
+    if (token !== generation || id !== state?.trial_id || !running) return;
+    state = next; presentationRequestStarted = started;
     if (state.complete) {
       running = false; keys.clear(); controls(); showResult(state.summary);
-      $("status").textContent = "Trial complete. Recording saved locally. Choose another condition to start again.";
-    } else if (!paused) {
-      const elapsed = performance.now() - started;
-      $("status").textContent = `Direct control active · last request ${elapsed.toFixed(0)} ms · simulation tick ${(state.dt_s * 1000).toFixed(0)} ms`;
-    }
+      $('status').textContent = 'Trial complete. Recording saved locally. Choose another condition to start again.';
+    } else if (!paused) $('status').textContent = `Direct control active · last request ${(performance.now() - started).toFixed(0)} ms · simulation tick ${(state.dt_s * 1000).toFixed(0)} ms`;
+    render();
   } catch (error) {
-    paused = true; keys.clear(); controls();
-    $("status").textContent = `Paused after error: ${error.message}. Stop this trial before restarting.`;
+    if (token !== generation) return;
+    paused = true; mustStop = true; generation++; keys.clear();
+    if (isSix(state.condition)) clearSix('request error');
+    controls(); $('status').textContent = `Paused after error: ${error.message}. Stop this trial before restarting.`;
   } finally {
-    inFlight = false;
-    if (running && !paused) timer = setTimeout(tick, Math.max(0, state.dt_s * 1000 - (performance.now() - started)));
+    if (inFlight === requestToken) {
+      inFlight = false;
+      // Resume may have happened while this older response was in flight.
+      // Request fresh state under the current epoch; never render the old reply.
+      if (running && !paused && !controlPending && !mustStop)
+        timer = setTimeout(tick, token === generation ? Math.max(0, state.dt_s * 1000 - (performance.now() - started)) : 0);
+    }
   }
 }
 
 function togglePause(force = false) {
-  if (!running) return;
+  if (starting) { generation++; if (isSix($('condition').value)) clearSix('start interrupted'); return; }
+  if (!running || stopping || mustStop) return;
   paused = force || !paused;
-  keys.clear(); clearTimeout(timer); controls();
-  $("status").textContent = paused ? "Paused. Simulation time is frozen; press Resume when ready." : "Resuming direct control.";
-  if (!paused) tick();
+  keys.clear(); clearTimeout(timer);
+  if (!isSix(state.condition)) {
+    controls(); $('status').textContent = paused ? 'Paused. Simulation time is frozen; press Resume when ready.' : 'Resuming direct control.';
+    if (!paused) tick(); return;
+  }
+  const token = ++generation, desiredPause = paused, id = state.trial_id;
+  clearSix(desiredPause ? 'paused' : 'resuming');
+  controlPending++; controls();
+  controlQueue = controlQueue.then(async () => {
+    const alreadyPaused = state.feedback.phase === 'paused';
+    if (desiredPause !== alreadyPaused) {
+      const started = performance.now();
+      const next = await post('/api/presentation-lifecycle', {trial_id:id,
+        action:desiredPause ? 'pause' : 'resume', expected_epoch:state.feedback.epoch});
+      if (state?.trial_id === id) { state = next; presentationRequestStarted = started; }
+    }
+    if (token === generation && state.complete) {
+      running = false; render(); showResult(state.summary);
+      $('status').textContent = 'Trial complete. Recording saved locally.';
+    } else if (token === generation) {
+      render(); $('status').textContent = desiredPause ? 'Paused. Simulation time is frozen; press Resume when ready.' : 'Resuming direct control.';
+    }
+  }).catch(error => {
+    paused = true; mustStop = true; clearSix('lifecycle error');
+    $('status').textContent = `Lifecycle failed: ${error.message}. Stop before restarting.`;
+  }).finally(() => {
+    controlPending--; controls();
+    if (token === generation && running && !paused && !mustStop) tick();
+  });
 }
 
-$("setup").addEventListener("submit", async event => {
+$('setup').addEventListener('submit', async event => {
   event.preventDefault();
-  if (running || starting || !ready) return;
-  const settings = { condition: $("condition").value, seed: Number($("seed").value), task: $("task").value };
-  if (settings.task === "safe_zone") settings.safe_zone_half_width = Number($("zone-size").value);
-  starting = true; state = null; controls(); render();
+  if (running || starting || !ready || controlPending) return;
+  const settings = {condition:$('condition').value, seed:Number($('seed').value), task:$('task').value};
+  if (settings.task === 'safe_zone') settings.safe_zone_half_width = Number($('zone-size').value);
+  if (isSix(settings.condition)) { settings.candidate = candidate; pendingStartId = crypto.randomUUID(); settings.start_id = pendingStartId; }
+  const token = ++generation, started = performance.now();
+  starting = true; state = null; inFlight = false; mustStop = false; controls(); render();
   try {
-    state = await post("/api/trials", settings);
-    running = true; paused = document.hidden; keys.clear(); $("result").hidden = true;
-    $("start").blur(); controls(); render(); tick();
-  } catch (error) { $("status").textContent = error.message; }
-  finally { starting = false; controls(); }
+    const next = await post('/api/trials', settings);
+    if (token !== generation || document.hidden) {
+      await post('/api/stop', {trial_id:next.trial_id});
+      $('status').textContent = 'Start interrupted by leaving the page. Partial recording preserved.';
+      return;
+    }
+    state = next; presentationRequestStarted = started;
+    running = true; paused = false; keys.clear(); $('result').hidden = true;
+    $('start').blur(); controls(); render(); tick();
+  } catch (error) { cancelPendingStart(); $('status').textContent = error.message; }
+  finally { starting = false; pendingStartId = null; controls(); }
 });
-
-$("condition").addEventListener("change", setupChanged);
-$("task").addEventListener("change", setupChanged);
-$("zone-size").addEventListener("input", setupChanged);
-$("pause").addEventListener("click", () => { $("pause").blur(); togglePause(); });
-$("stop").addEventListener("click", async () => {
-  togglePause(true);
-  // An in-flight action is allowed to finish before closing its recording.
-  while (inFlight) await new Promise(resolve => setTimeout(resolve, 10));
+$('candidate-file').addEventListener('change', async () => {
+  candidate = null; controls();
   try {
-    const result = await post("/api/stop", { trial_id: state.trial_id });
-    running = false; controls(); showResult(result.summary);
-    $("status").textContent = "Trial stopped. Partial recording retained; start a new trial to continue.";
-  } catch (error) { $("status").textContent = `Stop failed: ${error.message}`; }
+    const file = $('candidate-file').files[0]; if (!file) return;
+    if (file.size > 8000) throw new Error('Candidate exceeds supported file size.');
+    const value = JSON.parse(await file.text());
+    const accepted = await post('/api/candidate-import', {candidate:value});
+    candidate = value;
+    $('candidate-status').textContent = `Selected unvalidated candidate · ${accepted.profile_sha256}. Frozen at start; meaning ${accepted.code_id}.`;
+  } catch (error) { $('candidate-status').textContent = `Import rejected: ${error.message}`; }
+  finally { $('candidate-file').value = ''; controls(); }
+});
+$('condition').addEventListener('change', setupChanged);
+$('task').addEventListener('change', setupChanged);
+$('zone-size').addEventListener('input', setupChanged);
+$('pause').addEventListener('click', () => { $('pause').blur(); togglePause(); });
+$('stop').addEventListener('click', async () => {
+  if (!running || stopping) return;
+  stopping = true; paused = true; generation++; keys.clear(); clearTimeout(timer);
+  if (isSix(state.condition)) clearSix('stopped');
+  controls();
+  try {
+    await controlQueue;
+    const result = await post('/api/stop', {trial_id:state.trial_id});
+    running = false; showResult(result.summary);
+    $('status').textContent = 'Trial stopped. Partial recording retained; start a new trial to continue.';
+  } catch (error) { mustStop = true; $('status').textContent = `Stop failed: ${error.message}`; }
+  finally { stopping = false; controls(); }
+});
+function cancelPendingStart() {
+  if (pendingStartId) fetch('/api/cancel-start', {method:'POST', keepalive:true,
+    headers:{'Content-Type':'application/json'}, body:JSON.stringify({start_id:pendingStartId})}).catch(() => {});
+}
+window.addEventListener('pagehide', () => {
+  cancelPendingStart();
+  generation++; paused = true; keys.clear(); clearTimeout(timer);
+  if (isSix(state?.condition || $('condition').value)) clearSix('page exit');
+  if (running && state) fetch('/api/stop', {method:'POST', keepalive:true,
+    headers:{'Content-Type':'application/json'}, body:JSON.stringify({trial_id:state.trial_id})}).catch(() => {});
+  running = false; controls();
 });
 
 const validKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d"]);
