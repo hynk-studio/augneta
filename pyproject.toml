@@ -17,7 +17,7 @@ dev = ["pytest==9.1.1", "playwright==1.64.0"]
 augneta = "augneta.cli:main"
 
 [tool.setuptools.package-data]
-augneta = ["static/*.html", "static/*.css", "static/*.js"]
+augneta = ["static/*.html", "static/*.css", "static/*.js", "data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
