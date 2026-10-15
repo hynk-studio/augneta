@@ -12,6 +12,10 @@ The first runnable software experiment is implemented: deterministic hidden-flow
 
 No human learning, embodiment, sensory extension, physical feedback, neural, or consciousness result has been established. The sensory-code display is a development preview, not haptic delivery.
 
+As of 2026-10-15, the next physical experiment is planned around a **TactSleeve pair**. The goal remains a learnable sensory interface with transfer and retention evidence; efficient personal calibration and recalibration support that goal. Further implementation and experiments are paused until the device is available. Purchase, arrival, connection, and physical performance have not been verified. See the [TactSleeve plan and resume task](docs/tasks/TACTSLEEVE_INTEGRATION.md).
+
+[Draft PR #2](https://github.com/hynk-studio/augneta/pull/2) contains separate, unmerged mock-output preparation. Its eight-distinct-slot model and Air-first device proposal are not the TactSleeve integration plan; the new task records the required changes. This documentation update does not add a hardware driver.
+
 The initial documents were prepared on 2026-10-14 from a protocol drafted on 2026-10-07. This repository is independent of Augnes and does not require its runtime or validation suites.
 
 ## Research tracks
@@ -89,6 +93,7 @@ Noise, delay, dropout, duration, and the evaluation window can be configured wit
 | Document | Purpose |
 | --- | --- |
 | [Research protocol](docs/PROJECT_SELECTION_AND_PROTOCOL.md) | Research questions, comparators, evidence boundaries, evaluation, and later experiments; written in Korean |
+| [TactSleeve plan and resume task](docs/tasks/TACTSLEEVE_INTEGRATION.md) | Device-specific plan, current pause, and the first work to resume after arrival |
 | [First implementation task](docs/tasks/FIRST_IMPLEMENTATION.md) | End-to-end scope and acceptance criteria for the first implementation PR |
 | [Cloud environment setup](docs/tasks/CLOUD_ENVIRONMENT_SETUP.md) | Instructions for preparing a dedicated Codex Cloud environment |
 | [Methods](docs/METHODS.md) | Equations, timing, information boundaries, encoding, metric, and replay contract |
