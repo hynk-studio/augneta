@@ -6,12 +6,13 @@ import json
 from .config import Config, canonical
 from .estimation import Belief, CausalEstimator, ESTIMATORS
 from .feedback import Encoder, ENCODERS, decode_force
-from .metrics import tracking_error
+from .metrics import tracking_error, safe_zone_error
 from .simulation import World, clip, validate_action
 
 
 MAIN_CONDITIONS = ("none", "dashboard", "sensory_preview")
 ORACLE_CONDITION = "oracle_diagnostic"
+SYNTHETIC_POLICY_ID = "visible-pd-v2"
 
 
 def evidence(participant_kind):
@@ -99,7 +100,14 @@ class Trial:
 
     def view(self):
         """The only object provided to a renderer or synthetic decision policy."""
-        return {"visible": self.__world.visible().to_dict(), "condition": self.condition,
+        visible = self.__world.visible().to_dict()
+        objective = {"kind": self.config.task}
+        if self.config.task == "safe_zone":
+            del visible["target"]  # Not part of this task's display or policy input.
+            objective.update(shape="closed_square", center=[0.0, 0.0],
+                             half_width=self.config.safe_zone_half_width)
+        return {"visible": visible,
+                "task": self.config.task, "objective": objective, "condition": self.condition,
                 "diagnostic": self.diagnostic, "complete": self.complete,
                 "feedback": self.__packet.to_dict() if self.condition != "none" else None}
 
@@ -125,13 +133,15 @@ class Trial:
         return json.loads(canonical(record)), evaluation
 
     def summary(self):
+        if self.config.task == "safe_zone":
+            metric = safe_zone_error(self.__states, config=self.config, completed=self.complete)
+        else:
+            metric = tracking_error(self.__states, start_step=self.config.evaluation_start_step,
+                                    end_step=self.config.evaluation_end_step,
+                                    arena_half_width=self.config.arena_half_width, completed=self.complete)
         return {"condition": self.condition, "diagnostic": self.diagnostic,
-                "completed_steps": self.step,
-                **tracking_error(self.__states,
-                                 start_step=self.config.evaluation_start_step,
-                                 end_step=self.config.evaluation_end_step,
-                                 arena_half_width=self.config.arena_half_width,
-                                 completed=self.complete)}
+                "task": self.config.task, "completed_steps": self.step,
+                **metric}
 
 
 def synthetic_action(view, control_gain):
@@ -141,5 +151,6 @@ def synthetic_action(view, control_gain):
     """
     state = view["visible"]
     force = decode_force(view["feedback"])
+    target = [0.0, 0.0] if view["task"] == "safe_zone" else state["target"]
     return tuple(clip((5.0 * (t - p) - 2.4 * v - f) / control_gain, -1.0, 1.0)
-                 for t, p, v, f in zip(state["target"], state["position"], state["velocity"], force))
+                 for t, p, v, f in zip(target, state["position"], state["velocity"], force))

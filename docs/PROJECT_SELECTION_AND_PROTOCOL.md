@@ -364,3 +364,7 @@ SDK 호출과 실제 자극 측정을 구별하고, 출력 중단·해제·개�
 실행 시 예산 사용, 개인정보 외부 전송, 장비 작동의 범위를 해당 작업에서 명확히 정한다. 첫 소프트웨어 구현의 범위와 완료 기준은 [첫 구현 과제](tasks/FIRST_IMPLEMENTATION.md)에 있다.
 
 **현재 진행/대기 구분:** [TactSleeve 실행 명세](tasks/TACTSLEEVE_INTEGRATION.md)의 선행 개발을 진행하고, 실물에 의존하는 측정은 대기한다. 기존 ChatGPT Site는 개발 데모로 유지하며 실제 장치 연결은 사용자 PC의 Python 서버·브라우저·bHaptics Player를 우선 경로로 삼는다. 도착 시 사용 PC/OS와 좌우 장치 연결부터 확인한다. 새로운 환경 게시나 BCI 장비 준비는 선행 개발의 조건이 아니다.
+
+계획 5.0-3의 장비 독립 구현은 [과제 민감도·안전 구역 방법](TASK_SENSITIVITY.md)과
+[검증 기록](VERIFICATION_TASK_SENSITIVITY.md)에 있다. 합성 진단과 다른 제어 목적의 지원이며
+인간 학습 전이·촉각 성능의 검증은 아직 수행하지 않았다.

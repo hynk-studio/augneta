@@ -90,6 +90,23 @@ If system Chromium is unavailable, install a Playwright browser with `.venv/bin/
 
 Noise, delay, dropout, duration, and the evaluation window can be configured with a JSON object of [Config fields](src/augneta/config.py), supplied to `smoke --config file.json` or `serve --config file.json`. `--seed` overrides a smoke config seed; the UI uses its seed input. Invalid configurations and requests for `--output hardware` fail explicitly.
 
+## Task sensitivity and safe-zone preparation (plan 5.0-3)
+
+The task selector now offers default target tracking and **Safe-zone maintenance**
+with a validated central square size. Both retain direct controls, pause/stop,
+and deterministic recording/replay; safe-zone summaries report outside time,
+fraction, and normalized distance. The encoder retains the same flow meaning.
+Run `.venv/bin/python -m augneta sensitivity --out runs/sensitivity-v1` for the
+frozen CPU-only grid with disjoint development/check seeds. See the
+[method and launch commands](docs/TASK_SENSITIVITY.md) and
+[actual verification](docs/VERIFICATION_TASK_SENSITIVITY.md). These are synthetic
+software diagnostics, not evidence of learned human transfer. This step depends
+on the still-unmerged [Draft PR #2](https://github.com/hynk-studio/augneta/pull/2)
+preparation. The final diagnostic reproduced the original frozen settings;
+check seeds were already observed before the review. Low/default-flow safe-zone
+cells have a floor effect; long sensor delay can worsen performance. The
+existing Site deployment is unchanged.
+
 ## Start here
 
 | Document | Purpose |

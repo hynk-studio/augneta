@@ -125,7 +125,7 @@ def test_observation_boundary_and_encoder_have_no_truth_target_or_future(config,
     two = Trial(replace(config, seed=987, flow_strength=20, target_radius=0.9), "dashboard")
     # Different hidden worlds and targets, exactly equal permitted observations.
     assert one.view()["feedback"] == two.view()["feedback"]
-    assert set(one.view()) == {"visible", "condition", "diagnostic", "complete", "feedback"}
+    assert set(one.view()) == {"visible", "condition", "diagnostic", "complete", "feedback", "task", "objective"}
     assert set(one.view()["visible"]) == {"step", "time_s", "position", "velocity", "target"}
 
 

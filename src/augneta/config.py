@@ -30,17 +30,27 @@ class Config:
     sensor_delay_steps: int = 4
     sensor_dropout_probability: float = 0.1
     feedback_period_steps: int = 4
+    task: str = "tracking"
+    safe_zone_half_width: float = 0.2
 
     def __post_init__(self):
         integers = {"seed", "steps", "evaluation_start_step", "evaluation_end_step",
                     "sensor_period_steps", "sensor_delay_steps", "feedback_period_steps"}
         for field in fields(self):
             value = getattr(self, field.name)
+            if field.name == "task":
+                if type(value) is not str or value not in ("tracking", "safe_zone"):
+                    raise ValueError("unknown task")
+                continue
             if field.name in integers:
                 if type(value) is not int:
                     raise ValueError(f"{field.name} must be an integer")
             elif type(value) not in (int, float) or not math.isfinite(value):
                 raise ValueError(f"{field.name} must be finite")
+        if self.safe_zone_half_width <= 0:
+            raise ValueError("safe zone half-width must be positive")
+        if self.task == "safe_zone" and self.safe_zone_half_width >= self.arena_half_width:
+            raise ValueError("safe zone must fit strictly inside arena")
         if not 0 <= self.seed < 2**32:
             raise ValueError("seed must be in [0, 2**32)")
         if not 0.005 <= self.dt_s <= 0.1 or not 1 <= self.steps <= 100_000:

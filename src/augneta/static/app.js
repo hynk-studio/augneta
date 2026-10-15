@@ -8,6 +8,35 @@ let running = false;
 let paused = false;
 let inFlight = false;
 let timer = null;
+let ready = false;
+let starting = false;
+let arenaHalfWidth = 1;
+
+function describeTask(task, halfWidth) {
+  const safe = task === "safe_zone";
+  $("task-heading").textContent = safe ? "HIDDEN-FLOW SAFE ZONE" : "HIDDEN-FLOW TRACKING";
+  $("task-title").textContent = safe ? "Stay inside the safe region." : "Follow the target. Explore the unseen force.";
+  $("task-description").textContent = safe
+    ? "Keep the center of your teal point inside the green square. The boundary counts as inside. You control every action; feedback describes the flow."
+    : "Steer the teal point toward the moving orange ring. You control every action; feedback describes the flow.";
+  $("objective").textContent = safe
+    ? `Safe-zone maintenance: centered square, half-width ${halfWidth}; arena half-width ${arenaHalfWidth}. Stay inside, including the boundary.`
+    : "Target tracking: follow the moving orange ring.";
+  $("target-legend").hidden = safe;
+  $("zone-legend").hidden = !safe;
+  arena.setAttribute("aria-label", safe ? "Safe-zone arena: keep your point inside the green square" : "Tracking arena: follow the orange ring");
+}
+
+function setupChanged() {
+  $("zone-setting").hidden = $("task").value !== "safe_zone";
+  controls();
+  if (!running && !starting) {
+    state = null;
+    $("result").hidden = true;
+    describeTask($("task").value, Number($("zone-size").value));
+    render();
+  }
+}
 
 async function post(path, data) {
   const response = await fetch(path, {
@@ -38,14 +67,24 @@ function drawArena() {
   }
   ctx.strokeStyle = "#bccbb6"; ctx.strokeRect(left, top, side, side);
   if (!state) {
+    delete arena.dataset.step;
     ctx.fillStyle = "#62715f"; ctx.textAlign = "center"; ctx.font = "18px system-ui";
     ctx.fillText("Start a trial to explore the flow", w / 2, h / 2);
     return;
   }
-  const [tx, ty] = point(state.visible.target);
+  if (state.task === "safe_zone") {
+    const z = state.objective.half_width;
+    const [x, y] = point([-z, z]);
+    const size = z / half * side;
+    ctx.fillStyle = "#157a6e22"; ctx.fillRect(x, y, size, size);
+    ctx.strokeStyle = "#157a6e"; ctx.lineWidth = 3; ctx.strokeRect(x, y, size, size);
+  }
   const [px, py] = point(state.visible.position);
-  ctx.beginPath(); ctx.arc(tx, ty, 15, 0, Math.PI * 2); ctx.strokeStyle = "#ce673d"; ctx.lineWidth = 3; ctx.stroke();
-  ctx.beginPath(); ctx.arc(tx, ty, 3, 0, Math.PI * 2); ctx.fillStyle = "#ce673d"; ctx.fill();
+  if (state.task === "tracking") {
+    const [tx, ty] = point(state.visible.target);
+    ctx.beginPath(); ctx.arc(tx, ty, 15, 0, Math.PI * 2); ctx.strokeStyle = "#ce673d"; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(tx, ty, 3, 0, Math.PI * 2); ctx.fillStyle = "#ce673d"; ctx.fill();
+  }
   ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fillStyle = "#157a6e"; ctx.fill();
   ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI * 2); ctx.strokeStyle = "#157a6e33"; ctx.lineWidth = 6; ctx.stroke();
   arena.dataset.step = String(state.visible.step);
@@ -91,7 +130,7 @@ function drawFeedback(packet, condition) {
 function showCondition(condition, packet) {
   const preview = condition === "sensory_preview";
   $("feedback-title").textContent = condition === "none" ? "No additional information" : preview ? "Sensory code preview" : "Estimated environmental force";
-  $("feedback-description").textContent = condition === "none" ? "Track using the visible target and your point’s motion."
+  $("feedback-description").textContent = condition === "none" ? "Use your point’s motion and the selected objective."
     : preview ? "Eight intended channels encode the same quantized estimate as the visual dashboard."
       : "Eight directions and four intensity levels. This is a causal estimate, not hidden truth.";
   $("preview-note").hidden = !preview;
@@ -111,6 +150,7 @@ function render() {
   drawArena();
   if (!state) { showCondition($("condition").value, null); return; }
   showCondition(state.condition, state.feedback);
+  describeTask(state.task, state.objective.half_width);
   $("clock").textContent = `${state.visible.time_s.toFixed(2)} / ${(state.total_steps * state.dt_s).toFixed(2)} s`;
   $("progress").max = state.total_steps; $("progress").value = state.visible.step;
   $("motion").textContent = `Position ${state.visible.position.map(v => v.toFixed(2)).join(", ")} · Velocity ${state.visible.velocity.map(v => v.toFixed(2)).join(", ")}`;
@@ -119,9 +159,12 @@ function render() {
 }
 
 function controls() {
-  $("start").disabled = running;
-  $("condition").disabled = running;
-  $("seed").disabled = running;
+  const locked = running || starting || !ready;
+  $("start").disabled = locked;
+  $("condition").disabled = locked;
+  $("seed").disabled = locked;
+  $("task").disabled = locked;
+  $("zone-size").disabled = locked || $("task").value !== "safe_zone";
   $("pause").disabled = !running;
   $("stop").disabled = !running;
   $("pause").textContent = paused ? "Resume" : "Pause";
@@ -129,10 +172,13 @@ function controls() {
 
 function showResult(summary) {
   $("result").hidden = false;
-  const score = summary.normalized_tracking_rmse;
+  const safe = summary.task === "safe_zone";
+  $("metric-label").textContent = safe ? "NORMALIZED OUTSIDE DISTANCE" : "NORMALIZED TRACKING RMSE";
+  const score = safe ? summary.normalized_outside_distance : summary.normalized_tracking_rmse;
   $("score").textContent = score === null ? "Incomplete" : score.toFixed(4);
   $("result-detail").textContent = score === null
-    ? "Trial stopped before completion. No valid tracking score is reported. The partial trace is retained."
+    ? "Trial stopped before completion. No valid complete score is reported. The partial trace is retained."
+    : safe ? `Outside ${summary.outside_time_s.toFixed(2)} s (${(summary.outside_fraction * 100).toFixed(1)}%); distance averaged over all ${summary.samples} window ticks / farthest corner distance. Synthetic/developer result, not human transfer evidence.`
     : `RMSE / arena diagonal, using ${summary.samples} fixed-window samples. Lower is closer tracking. This development result is not human learning evidence.`;
 }
 
@@ -174,16 +220,21 @@ function togglePause(force = false) {
 
 $("setup").addEventListener("submit", async event => {
   event.preventDefault();
-  if (running) return;
-  $("start").disabled = true;
+  if (running || starting || !ready) return;
+  const settings = { condition: $("condition").value, seed: Number($("seed").value), task: $("task").value };
+  if (settings.task === "safe_zone") settings.safe_zone_half_width = Number($("zone-size").value);
+  starting = true; state = null; controls(); render();
   try {
-    state = await post("/api/trials", { condition: $("condition").value, seed: Number($("seed").value) });
-    running = true; paused = false; keys.clear(); $("result").hidden = true;
+    state = await post("/api/trials", settings);
+    running = true; paused = document.hidden; keys.clear(); $("result").hidden = true;
     $("start").blur(); controls(); render(); tick();
-  } catch (error) { $("status").textContent = error.message; controls(); }
+  } catch (error) { $("status").textContent = error.message; }
+  finally { starting = false; controls(); }
 });
 
-$("condition").addEventListener("change", () => { if (!running) showCondition($("condition").value, null); });
+$("condition").addEventListener("change", setupChanged);
+$("task").addEventListener("change", setupChanged);
+$("zone-size").addEventListener("input", setupChanged);
 $("pause").addEventListener("click", () => { $("pause").blur(); togglePause(); });
 $("stop").addEventListener("click", async () => {
   togglePause(true);
@@ -213,4 +264,17 @@ document.querySelectorAll("[data-key]").forEach(button => {
   });
   for (const event of ["pointerup", "pointercancel", "lostpointercapture"]) button.addEventListener(event, () => keys.delete(button.dataset.key));
 });
-render();
+async function initialize() {
+  controls(); render();
+  try {
+    const response = await fetch("/api/trial-defaults");
+    if (!response.ok) throw new Error("Cannot load task settings; reload to retry.");
+    const settings = await response.json();
+    $("task").value = settings.task;
+    $("seed").value = settings.seed;
+    $("zone-size").value = settings.safe_zone_half_width;
+    arenaHalfWidth = settings.arena_half_width;
+    ready = true; setupChanged();
+  } catch (error) { $("status").textContent = error.message; }
+}
+initialize();

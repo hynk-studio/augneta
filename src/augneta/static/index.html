@@ -15,12 +15,18 @@
       <span class="badge">Software development · no physical output</span>
     </header>
     <section class="intro">
-      <p class="eyebrow">HIDDEN-FLOW TRACKING</p>
-      <h1>Follow the target.<br>Explore the unseen force.</h1>
-      <p>Steer the teal point toward the moving orange ring. A hidden flow pushes your point.
+      <p id="task-heading" class="eyebrow">HIDDEN-FLOW TRACKING</p>
+      <h1 id="task-title">Follow the target.<br>Explore the unseen force.</h1>
+      <p id="task-description">Steer the teal point toward the moving orange ring. A hidden flow pushes your point.
         You control every action; the feedback describes the flow.</p>
     </section>
     <form id="setup" class="setup">
+      <label>Task
+        <select id="task"><option value="tracking">Target tracking</option><option value="safe_zone">Safe-zone maintenance</option></select>
+      </label>
+      <label id="zone-setting" hidden>Safe square half-width (arena units)
+        <input id="zone-size" type="number" min="0" step="any" value="0.2" required>
+      </label>
       <label>Feedback condition
         <select id="condition">
           <option value="none">A · No additional information</option>
@@ -31,11 +37,12 @@
       <label class="seed">Simulation seed
         <input id="seed" type="number" min="0" max="4294967295" value="7" required>
       </label>
-      <button id="start" type="submit">Start trial <span aria-hidden="true">↗</span></button>
+      <button id="start" type="submit" disabled>Start trial <span aria-hidden="true">↗</span></button>
     </form>
+    <p id="objective" role="status">Tracking: follow the orange ring. Safe zone: stay inside the green square, including its boundary.</p>
     <section class="experiment">
       <div class="arena-panel">
-        <div class="panel-top"><span><i class="dot teal"></i> You <i class="dot orange"></i> Target</span>
+        <div class="panel-top"><span><i class="dot teal"></i> You <span id="target-legend"><i class="dot orange"></i> Target</span><span id="zone-legend" hidden> · Green square: safe region</span></span>
           <span id="clock">0.00 / 30.00 s</span></div>
         <canvas id="arena" width="720" height="620" aria-label="Tracking arena: use arrow keys or W A S D to move your point"></canvas>
         <div class="arena-bottom">
@@ -76,7 +83,7 @@
     </section>
     <p id="status" class="status" role="status" aria-live="polite">Ready. Choose a condition and start a development trial.</p>
     <section id="result" class="result" hidden>
-      <div><p class="eyebrow">NORMALIZED TRACKING RMSE</p><strong id="score">—</strong></div>
+      <div><p id="metric-label" class="eyebrow">NORMALIZED TRACKING RMSE</p><strong id="score">—</strong></div>
       <p id="result-detail"></p>
     </section>
     <footer>

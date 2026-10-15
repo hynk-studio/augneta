@@ -9,3 +9,6 @@ runs/
 artifacts/
 .env
 .env.*
+
+# Local implementation checkpoints and verification scratch
+/work/

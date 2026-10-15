@@ -176,14 +176,23 @@ def create_app(log_root="runs/ui", *, participant_kind="developer", config=None,
         with lock:
             return jsonify(selected_calibration({"session_id": identifier}).export())
 
+    @app.get("/api/trial-defaults")
+    def trial_defaults():
+        return jsonify(task=default_config.task, seed=default_config.seed,
+                       safe_zone_half_width=default_config.safe_zone_half_width,
+                       arena_half_width=default_config.arena_half_width)
+
     @app.post("/api/trials")
     def start():
-        data = payload(("condition", "seed"))
+        data = payload(("condition", "seed", "task", "safe_zone_half_width"))
         condition = data.get("condition", "none")
         if condition not in MAIN_CONDITIONS:
             raise ValueError("only main development conditions are available in the UI")
         settings = default_config.to_dict()
         settings["seed"] = data.get("seed", settings["seed"])
+        for key in ("task", "safe_zone_half_width"):
+            if key in data:
+                settings[key] = data[key]
         trial = Trial(Config.from_dict(settings), condition)
         with lock:
             end_active()
