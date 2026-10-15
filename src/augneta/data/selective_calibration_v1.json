@@ -1,0 +1,192 @@
+{
+  "version": "selective-calibration-v1",
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "profile_status": "unvalidated_hardware_candidate",
+  "base_profile": {
+    "gains": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "gap_ms": 150,
+    "intensities": [
+      0.0,
+      0.25,
+      0.5
+    ],
+    "patterns": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "pulse_ms": 150,
+    "spec": {
+      "directions": 6,
+      "levels": 2,
+      "max_magnitude": 1.5
+    }
+  },
+  "gain_candidates": [
+    1.0,
+    0.75,
+    0.5
+  ],
+  "candidate_parameterization": "Three uniform-gain probe profiles; fit each slot independently, composing at most 3^6 profiles. One-hot patterns make probes separable. No semantic/timing change.",
+  "budgets": [
+    78,
+    156
+  ],
+  "development_seeds": [
+    17,
+    29,
+    43
+  ],
+  "check_seeds": [
+    211,
+    227,
+    241
+  ],
+  "evaluation_repetitions_per_code": 32,
+  "scenarios": {
+    "stable": {
+      "ordinary_multiplier_range": [
+        0.95,
+        1.05
+      ],
+      "disturbed_slots": "none",
+      "disturbed_multiplier_range": [
+        0.95,
+        1.05
+      ]
+    },
+    "localized": {
+      "ordinary_multiplier_range": [
+        0.95,
+        1.05
+      ],
+      "disturbed_slots": "one_seeded_slot",
+      "disturbed_multiplier_range": [
+        1.8,
+        2.2
+      ]
+    },
+    "broad": {
+      "ordinary_multiplier_range": [
+        1.35,
+        1.9
+      ],
+      "disturbed_slots": "all",
+      "disturbed_multiplier_range": [
+        1.35,
+        1.9
+      ]
+    },
+    "attenuated": {
+      "ordinary_multiplier_range": [
+        0.18,
+        0.25
+      ],
+      "disturbed_slots": "all",
+      "disturbed_multiplier_range": [
+        0.18,
+        0.25
+      ]
+    }
+  },
+  "receiver": {
+    "identity": "rendered-onehot-receiver-v1",
+    "noise_std": 0.025,
+    "lapse_probability": 0.04,
+    "detection_threshold": 0.12,
+    "ambiguity_margin": 0.04,
+    "level_threshold": 0.375,
+    "model": "max(0, rendered_slot * latent_multiplier + independent Gaussian noise). Lapse => unknown; else peak < detection => zero; else top-two margin < ambiguity => unknown; else peak slot and threshold level.",
+    "assumption": "A fixed nominal one-hot codebook with intensities 0.25/0.5 is already known. This is an assumption, not learning evidence."
+  },
+  "methods": [
+    "no_recalibration",
+    "uniform",
+    "selective"
+  ],
+  "allocation": {
+    "identity": "error-priority-v1",
+    "catch_every": 13,
+    "minimum_exploration_nonzero": 36,
+    "warmup": "Every direction x candidate x nonzero level once, in direction/candidate/level order; catches included in budget.",
+    "uniform": "Repeat direction/candidate/level order excluding every 13th catch.",
+    "selective": "After warmup choose direction maximizing baseline-gain posterior error / sqrt(number of nonzero responses for that direction). Then least-sampled candidate, then least-sampled level.",
+    "tie_rules": "Direction index ascending; candidate order 1.0,0.75,0.5; level 1 then 2. Catch uses base profile and code zero."
+  },
+  "fit": {
+    "identity": "balanced-beta-fit-v1",
+    "beta_success": 1,
+    "beta_failure": 1,
+    "rule": "For each slot minimize mean posterior error across levels 1/2, with independent Beta(1,1) estimates per candidate/level. Catch trials excluded from gain fitting, but costed. Ties prefer gain 1.0 then 0.75 then 0.5."
+  },
+  "evaluation": {
+    "primary_metric": "balanced_heldout_joint_error",
+    "codes": "12 direction/level codes plus zero, each 32 repetitions; unknown is incorrect even for zero; zero correct only for zero.",
+    "cost": "number of calibration responses; reference costs zero; no human time inference",
+    "freeze": "All methods and budgets select profiles before any evaluation for that individual/scenario; evaluator has no selector/fitter callback.",
+    "summary": "Per seed/scenario/budget and paired selective-minus-uniform / calibrated-minus-reference; per-code confusion; split-level mean, sample SD, min/max, win/tie/loss counts. Descriptive synthetic individuals, no human inference."
+  },
+  "randomness": {
+    "identity": "sha256-keyed-python-random-v1",
+    "latent_key": "[version,seed,scenario,latent]",
+    "calibration_key": "[version,seed,scenario,calibration,direction,level,candidate_index,occurrence_of_same_query]",
+    "evaluation_key": "[version,seed,scenario,evaluation,direction,level,repetition]; excludes method, gain and budget",
+    "draws": "Each keyed random.Random uses one uniform lapse draw then six Gaussian draws, drawn regardless of lapse. Full SHA-256 of canonical JSON keys seeds each local generator. No global RNG.",
+    "boundary": "Selector/fitter receive only immutable catalogue and prior query/command/response observations, plus remaining budget for selector. They never receive key, seed, scenario, latent state, RNG, future responses or evaluation data."
+  },
+  "freeze_note": "Written before any v1 development/check evaluation. No check-driven tuning; any bug rerun of exposed check seeds must be disclosed."
+}

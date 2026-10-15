@@ -48,6 +48,10 @@ def main(argv=None):
         command.add_argument("--output", default="software", choices=("software", "hardware"))
     diagnostic = commands.add_parser("sensitivity", help="frozen CPU-only paired task diagnostic")
     diagnostic.add_argument("--out", type=Path, required=True)
+    calibration_sim = commands.add_parser("calibration-sim", help="frozen synthetic selective calibration comparison")
+    calibration_sim.add_argument("--out", type=Path, required=True)
+    calibration_replay = commands.add_parser("calibration-replay", help="reconstruct a synthetic calibration comparison")
+    calibration_replay.add_argument("directory", type=Path)
     replay_parser = commands.add_parser("replay")
     replay_parser.add_argument("directory", type=Path)
     calibration = commands.add_parser("calibration-plan", help="unadministered, operator-only code identification plan")
@@ -69,7 +73,13 @@ def main(argv=None):
                        public_origin=args.public_origin).run(
                 host="127.0.0.1", port=args.port, debug=False, use_reloader=False)
             return 0
-        if args.command == "sensitivity":
+        if args.command == "calibration-sim":
+            from .calibration_simulation import run_simulation
+            result = run_simulation(args.out)
+        elif args.command == "calibration-replay":
+            from .calibration_simulation import reconstruct
+            result = reconstruct(args.directory)
+        elif args.command == "sensitivity":
             from .sensitivity import run_diagnostic
             result = run_diagnostic(args.out)
         elif args.command == "calibration-plan":

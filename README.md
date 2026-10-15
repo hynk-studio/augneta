@@ -107,6 +107,27 @@ check seeds were already observed before the review. Low/default-flow safe-zone
 cells have a floor effect; long sensor delay can worsen performance. The
 existing Site deployment is unchanged.
 
+## Selective calibration simulation (plan 5.0-4)
+
+The offline six-slot harness compares no recalibration (zero response cost),
+uniform allocation, and selective allocation with the same 78/156-response
+budgets and profile fitter. It freezes a small gain catalogue, virtual response
+models, development/check seeds, and balanced held-out joint error before
+running. No synthetic profile is installed in the manual rehearsal or task.
+
+```sh
+.venv/bin/python -m augneta calibration-sim --out runs/calibration-v1
+.venv/bin/python -m augneta calibration-replay runs/calibration-v1
+```
+
+See [method and assumptions](docs/SELECTIVE_CALIBRATION.md) and
+[actual results/verification](docs/VERIFICATION_SELECTIVE_CALIBRATION.md).
+Results are mixed: selective allocation can lose, no-change calibration can
+hurt, and uncorrectable attenuation remains uncorrected. These simulations do
+not establish human response savings or physical calibration. This step depends
+on [Draft PR #4](https://github.com/hynk-studio/augneta/pull/4); the existing Site
+and manual workflow are unchanged.
+
 ## Start here
 
 | Document | Purpose |
