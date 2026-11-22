@@ -82,7 +82,77 @@ def stimulus(case, goal):
     return {"goal": goal, "geometry": case["geometry"], "signal": case["signal"]}
 
 
-def run(split, out):
+def write_forms(out, forms):
+    public = out / "forms"
+    public.mkdir()
+    key_rows = []
+    for name, items in forms.items():
+        write_json(public / f"form-{name.lower()}.json", [stimulus(c, g) for c, g in items])
+        for position, (case, goal) in enumerate(items, start=1):
+            key_rows.append({"form": name, "position": position, **audit_row(case, goal)})
+    write_table(out / "item-key.csv", key_rows)
+
+
+def form_passes(form):
+    counts, n = form["correct"], form["items"]
+    controls = [counts[p] for p in POLICIES if p != "code_and_goal"]
+    return (counts["screen_and_goal"] == n / 2 and counts["code_and_goal"] >= .75 * n
+            and counts["code_and_goal"] > max(controls))
+
+
+def substitute_blank_cues(forms, reserve):
+    # The two forms contain the same scenes. Use the first eligible reserve seed in
+    # the same physical stratum with a readable code, including wrong-direction codes.
+    replacements, shortfalls = {}, []
+    for case, _ in forms["A"]:
+        if case["signal_direction"] is not None:
+            continue
+        key = (case["map"], case["seed"])
+        match = next((c for c in reserve if c["map"] == case["map"] and c["flow"] == case["flow"]
+                      and c["reason"] == "eligible" and c["signal_direction"] is not None
+                      and c["seed"] not in {r["seed"] for r in replacements.values()}), None)
+        if match is None:
+            shortfalls.append(key)
+        else:
+            replacements[key] = match
+    revised = {
+        name: [(replacements.get((c["map"], c["seed"]), c), g) for c, g in items]
+        for name, items in forms.items()
+    }
+    return revised, replacements, shortfalls
+
+
+def prepare_first_bank(forms, out, original_passed):
+    out.mkdir()
+    needed = {c["map"] for c, _ in forms["A"] if c["signal_direction"] is None}
+    reserve = [measure_case(layout, layout.first_seed + 1000 + offset)
+               for layout in CONFIRMATION if layout.name in needed
+               for offset in range(CONFIRMATION_SEEDS)]
+    if reserve:
+        write_table(out / "reserve-candidates.csv", [audit_row(c, g) for c in reserve for g in GOALS])
+    revised, replacements, shortfalls = substitute_blank_cues(forms, reserve)
+    form_scores = {name: scores(items) for name, items in revised.items()}
+    passed = original_passed and not shortfalls and all(form_passes(s) for s in form_scores.values())
+    status = {
+        **evidence("synthetic"), "reserve_candidates": len(reserve),
+        "reserve_reasons": dict(Counter(c["reason"] for c in reserve)),
+        "reserve_eligible_by_map_and_current_with_readable_code": {
+            name: {side: sum(c["map"] == name and c["flow"] == side and c["reason"] == "eligible"
+                             and c["signal_direction"] is not None for c in reserve) for side in SIDES}
+            for name in sorted(needed)
+        },
+        "replacements": [{"map": name, "original_seed": seed, "reserve_seed": case["seed"]}
+                         for (name, seed), case in replacements.items()],
+        "unfilled": shortfalls, "forms": form_scores,
+        "decision": "candidate_for_pilot_preparation" if passed else "revise_items",
+    }
+    if not shortfalls:
+        write_forms(out, revised)
+    write_json(out / "summary.json", status)
+    return status
+
+
+def run(split, out, prepare_bank=False):
     confirm = split == "confirmation"
     layouts, n_seeds = (CONFIRMATION, CONFIRMATION_SEEDS) if confirm else (DEVELOPMENT, DEVELOPMENT_SEEDS)
     cases = [measure_case(layout, seed) for layout in layouts
@@ -115,22 +185,13 @@ def run(split, out):
         summary["forms"] = {name: scores(items) for name, items in forms.items()}
         primary = summary["eligible_paired_scores"]
         passes = bool(forms) and primary["correct"]["code_and_goal"] >= .75 * primary["items"]
-        for form in summary["forms"].values():
-            counts, n = form["correct"], form["items"]
-            controls = [counts[p] for p in POLICIES if p != "code_and_goal"]
-            passes = (passes and counts["screen_and_goal"] == n / 2
-                      and counts["code_and_goal"] >= .75 * n and counts["code_and_goal"] > max(controls))
+        passes = passes and all(form_passes(form) for form in summary["forms"].values())
         summary["first_bank_decision"] = "candidate_for_pilot_preparation" if passes else "revise_items"
         # Retain the predetermined bank even on a poor cue result, so the failure is inspectable.
         if forms:
-            public = out / "forms"
-            public.mkdir()
-            key_rows = []
-            for name, items in forms.items():
-                write_json(public / f"form-{name.lower()}.json", [stimulus(c, g) for c, g in items])
-                for position, (case, goal) in enumerate(items, start=1):
-                    key_rows.append({"form": name, "position": position, **audit_row(case, goal)})
-            write_table(out / "item-key.csv", key_rows)
+            write_forms(out, forms)
+            if prepare_bank:
+                prepare_first_bank(forms, out / "pilot-bank", passes)
 
     write_json(out / "summary.json", summary)
     return summary
@@ -140,14 +201,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("split", choices=("development", "confirmation"))
     parser.add_argument("--out", type=Path, required=True, help="New output directory")
+    parser.add_argument("--prepare-bank", action="store_true", help="Prepare the scored forms using the fresh reserve rule")
     args = parser.parse_args()
+    if args.prepare_bank and args.split != "confirmation":
+        parser.error("--prepare-bank applies to confirmation forms")
     if args.out.exists():
         parser.error("Choose a new output directory to preserve the previous run.")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=args.out.parent) as temporary:
         staged = Path(temporary) / "study"
         staged.mkdir()
-        summary = run(args.split, staged)
+        summary = run(args.split, staged, args.prepare_bank)
         staged.rename(args.out)
     print(f"{args.split}: {summary['eligible_scenes']}/{summary['candidate_scenes']} eligible scenes")
     if "first_bank_decision" in summary:
