@@ -1,0 +1,155 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "output_mode": "software_only",
+  "evidence_scope": "technical_verification",
+  "split": "confirmation",
+  "config_except_seed": {
+    "dt_s": 0.05,
+    "steps": 600,
+    "evaluation_start_step": 100,
+    "evaluation_end_step": 600,
+    "arena_half_width": 1.0,
+    "control_gain": 2.0,
+    "drag": 1.2,
+    "max_speed": 1.5,
+    "flow_strength": 0.65,
+    "flow_period_s": 9.0,
+    "target_radius": 0.5,
+    "target_period_s": 16.0,
+    "sensor_noise_std": 0.18,
+    "sensor_period_steps": 4,
+    "sensor_delay_steps": 4,
+    "sensor_dropout_probability": 0.1,
+    "feedback_period_steps": 4
+  },
+  "estimator_id": "rw-kalman-v1",
+  "encoder_id": "polar8-v1",
+  "component_changes": [],
+  "map_layouts": [
+    {
+      "name": "C1",
+      "center": [
+        0.03,
+        -0.05
+      ],
+      "distance": 0.39,
+      "bearing_deg": -12.0,
+      "radius": 0.15,
+      "first_seed": 10100
+    },
+    {
+      "name": "C2",
+      "center": [
+        -0.06,
+        -0.02
+      ],
+      "distance": 0.42,
+      "bearing_deg": 8.0,
+      "radius": 0.17,
+      "first_seed": 20100
+    },
+    {
+      "name": "C3",
+      "center": [
+        0.05,
+        0.04
+      ],
+      "distance": 0.36,
+      "bearing_deg": 23.0,
+      "radius": 0.14,
+      "first_seed": 30100
+    },
+    {
+      "name": "C4",
+      "center": [
+        -0.03,
+        0.06
+      ],
+      "distance": 0.45,
+      "bearing_deg": -21.0,
+      "radius": 0.17,
+      "first_seed": 40100
+    }
+  ],
+  "consecutive_seeds_per_map": 80,
+  "choice_tick": 24,
+  "post_choice_ticks": 32,
+  "throttle_divisions": 20,
+  "min_gap_in_grid_steps": 2,
+  "candidate_scenes": 320,
+  "eligible_scenes": 56,
+  "reasons": {
+    "eligible": 56,
+    "neither_marker_hit": 172,
+    "unreachable_gate": 64,
+    "thrust_tie_or_small_margin": 28
+  },
+  "eligible_left_right_by_map": {
+    "C1": {
+      "left": 4,
+      "right": 5
+    },
+    "C2": {
+      "left": 7,
+      "right": 8
+    },
+    "C3": {
+      "left": 10,
+      "right": 4
+    },
+    "C4": {
+      "left": 8,
+      "right": 10
+    }
+  },
+  "eligible_scenes_without_a_code_direction": 2,
+  "eligible_paired_scores": {
+    "items": 112,
+    "correct": {
+      "always_left": 56,
+      "always_right": 56,
+      "goal_only": 54,
+      "follow_code": 56,
+      "oppose_code": 56,
+      "screen_and_goal": 54,
+      "code_and_goal": 110,
+      "drifting_screen_and_goal": 112
+    }
+  },
+  "shortfalls": [],
+  "form_order_seeds": {
+    "A": 7123,
+    "B": 8459
+  },
+  "forms": {
+    "A": {
+      "items": 16,
+      "correct": {
+        "always_left": 8,
+        "always_right": 8,
+        "goal_only": 8,
+        "follow_code": 8,
+        "oppose_code": 8,
+        "screen_and_goal": 8,
+        "code_and_goal": 16,
+        "drifting_screen_and_goal": 16
+      }
+    },
+    "B": {
+      "items": 16,
+      "correct": {
+        "always_left": 8,
+        "always_right": 8,
+        "goal_only": 8,
+        "follow_code": 8,
+        "oppose_code": 8,
+        "screen_and_goal": 8,
+        "code_and_goal": 16,
+        "drifting_screen_and_goal": 16
+      }
+    }
+  },
+  "first_bank_decision": "candidate_for_pilot_preparation"
+}

@@ -1,7 +1,7 @@
 """Generate the two-goal gate task and audit it using scripted policies."""
 
 import argparse
-from collections import Counter
+from collections import Counter, defaultdict
 import csv
 from dataclasses import asdict
 import json
@@ -122,6 +122,17 @@ def substitute_blank_cues(forms, reserve):
     return revised, replacements, shortfalls
 
 
+def screen_lookup_ceiling(items, include_status):
+    # For each identical visible input, the best memorized rule chooses its majority answer.
+    cells = defaultdict(Counter)
+    for case, goal in items:
+        key = (case["map"], goal)
+        if include_status:
+            key += tuple(case["signal"][k] for k in ("uncertainty_level", "age_steps", "dropped", "sensor_status"))
+        cells[key][case["answers"][goal]] += 1
+    return sum(max(counts.values()) for counts in cells.values())
+
+
 def prepare_first_bank(forms, out, original_passed):
     out.mkdir()
     needed = {c["map"] for c, _ in forms["A"] if c["signal_direction"] is None}
@@ -144,6 +155,11 @@ def prepare_first_bank(forms, out, original_passed):
         "replacements": [{"map": name, "original_seed": seed, "reserve_seed": case["seed"]}
                          for (name, seed), case in replacements.items()],
         "unfilled": shortfalls, "forms": form_scores,
+        "descriptive_lookup_ceiling_correct": {
+            name: {"geometry_and_goal": screen_lookup_ceiling(items, False),
+                   "geometry_goal_and_status": screen_lookup_ceiling(items, True)}
+            for name, items in revised.items()
+        },
         "decision": "candidate_for_pilot_preparation" if passed else "revise_items",
     }
     if not shortfalls:
@@ -215,7 +231,10 @@ def main():
         staged.rename(args.out)
     print(f"{args.split}: {summary['eligible_scenes']}/{summary['candidate_scenes']} eligible scenes")
     if "first_bank_decision" in summary:
-        print(summary["first_bank_decision"])
+        print("Initial bank:", summary["first_bank_decision"])
+    if args.prepare_bank and summary.get("forms"):
+        pilot = json.loads((args.out / "pilot-bank/summary.json").read_text())
+        print("Scored forms:", pilot["decision"])
 
 
 if __name__ == "__main__":
