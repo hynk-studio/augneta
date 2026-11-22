@@ -90,6 +90,7 @@ Noise, delay, dropout, duration, and the evaluation window can be configured wit
 | Document | Purpose |
 | --- | --- |
 | [Research protocol](docs/PROJECT_SELECTION_AND_PROTOCOL.md) | Research questions, comparators, evidence boundaries, evaluation, and later experiments; written in Korean |
+| [P1 gate-choice study](research/p1-gates/README.md) | Two scored forms for pilot preparation, synthetic policy comparisons, and a local software preview |
 | [First implementation task](docs/tasks/FIRST_IMPLEMENTATION.md) | End-to-end scope and acceptance criteria for the first implementation PR |
 | [Cloud environment setup](docs/tasks/CLOUD_ENVIRONMENT_SETUP.md) | Instructions for preparing a dedicated Codex Cloud environment |
 | [Methods](docs/METHODS.md) | Equations, timing, information boundaries, encoding, metric, and replay contract |

@@ -1,0 +1,67 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "output_mode": "software_only",
+  "evidence_scope": "technical_verification",
+  "reserve_candidates": 80,
+  "reserve_reasons": {
+    "neither_marker_hit": 40,
+    "unreachable_gate": 19,
+    "eligible": 14,
+    "thrust_tie_or_small_margin": 7
+  },
+  "reserve_eligible_by_map_and_current_with_readable_code": {
+    "C1": {
+      "left": 6,
+      "right": 6
+    }
+  },
+  "replacements": [
+    {
+      "map": "C1",
+      "original_seed": 10100,
+      "reserve_seed": 11110
+    }
+  ],
+  "unfilled": [],
+  "forms": {
+    "A": {
+      "items": 16,
+      "correct": {
+        "always_left": 8,
+        "always_right": 8,
+        "goal_only": 8,
+        "follow_code": 8,
+        "oppose_code": 8,
+        "screen_and_goal": 8,
+        "code_and_goal": 16,
+        "drifting_screen_and_goal": 16
+      }
+    },
+    "B": {
+      "items": 16,
+      "correct": {
+        "always_left": 8,
+        "always_right": 8,
+        "goal_only": 8,
+        "follow_code": 8,
+        "oppose_code": 8,
+        "screen_and_goal": 8,
+        "code_and_goal": 16,
+        "drifting_screen_and_goal": 16
+      }
+    }
+  },
+  "descriptive_lookup_ceiling_correct": {
+    "A": {
+      "geometry_and_goal": 8,
+      "geometry_goal_and_status": 9
+    },
+    "B": {
+      "geometry_and_goal": 8,
+      "geometry_goal_and_status": 9
+    }
+  },
+  "decision": "candidate_for_pilot_preparation"
+}

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Augneta · 관문 선택</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, "Noto Sans CJK KR", system-ui, sans-serif; color: #203732; background: #f4f5ef; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 860px; margin: 0 auto; padding: 27px clamp(16px, 4vw, 36px); }
+    header, .actions, .choices { display: flex; align-items: center; gap: 10px; }
+    header { justify-content: space-between; border-bottom: 1px solid #c7d4c9; padding-bottom: 12px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 19px; } h2 { font-size: clamp(19px, 3vw, 26px); line-height: 1.5; margin: 19px 0; word-break: keep-all; overflow-wrap: break-word; }
+    h3 { font-size: 15px; } #progress, footer, #quality { font-size: 13px; color: #486258; }
+    .instruments { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+    .panel { min-width: 0; padding: 14px; border: 1px solid #c9d5ca; border-radius: 10px; background: #fcfdf8; }
+    canvas { display: block; max-width: 100%; height: auto; }
+    #map { margin: auto; } #ring { width: 165px; margin: 5px auto; }
+    #quality { line-height: 1.7; }
+    .actions { margin-top: 17px; justify-content: space-between; flex-wrap: wrap; }
+    button { padding: 10px 16px; min-height: 44px; border: 1px solid #809a8c; border-radius: 7px; background: white; color: #203732; cursor: pointer; font: inherit; font-weight: 600; }
+    button[aria-pressed="true"], #next { background: #1a665a; color: white; border-color: #1a665a; }
+    button:disabled { opacity: .45; cursor: default; }
+    button:focus-visible { outline: 3px solid #bc632e; outline-offset: 3px; }
+    footer { margin-top: 17px; }
+    @media (max-width: 570px) {
+      main { padding-top: 15px; } h2 { margin: 14px 0; }
+      .instruments { grid-template-columns: 1fr; gap: 8px; }
+      .panel { padding: 11px; } #map { max-height: 165px; }
+      .signal { display: grid; grid-template-columns: 110px 1fr; align-items: center; column-gap: 12px; }
+      .signal h3 { grid-column: 2; grid-row: 1; align-self: end; }
+      #ring { grid-column: 1; grid-row: 1 / 3; width: 105px; margin: 0; }
+      #quality { grid-column: 2; grid-row: 2; align-self: start; }
+      button { padding: 9px 12px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header><h1>관문 선택</h1><p id="progress" aria-live="polite"></p></header>
+    <p id="status" role="status">문항을 불러오는 중입니다.</p>
+    <section id="trial" hidden>
+      <h2 id="prompt" tabindex="-1"></h2>
+      <div class="instruments">
+        <section class="panel"><h3>관측 지도</h3>
+          <canvas id="map" width="600" height="290" role="img" aria-label="고정 관측소 양쪽에 같은 거리의 관문이 있습니다."></canvas>
+        </section>
+        <section class="panel signal"><h3>고정 부호</h3>
+          <canvas id="ring" width="180" height="180" role="img"></canvas>
+          <p id="quality"></p>
+        </section>
+      </div>
+      <div class="actions">
+        <div class="choices" role="group" aria-labelledby="prompt">
+          <button type="button" id="left" aria-pressed="false">왼쪽 관문</button>
+          <button type="button" id="right" aria-pressed="false">오른쪽 관문</button>
+        </div>
+        <button type="button" id="next" disabled>다음 문항</button>
+      </div>
+    </section>
+    <footer>소프트웨어 미리보기 · 선택은 이 화면에서만 처리합니다.</footer>
+  </main>
+  <script>
+    const el = id => document.getElementById(id);
+    const form = new URLSearchParams(location.search).get("form")?.toLowerCase() === "b" ? "b" : "a";
+    const prompts = {
+      reach: "중앙에서 출발합니다. 1.6초 안에 더 낮은 추진력으로 닿을 수 있는 관문은 어디인가요?",
+      release: "관문에서 표식을 놓습니다. 추진 없이 1.6초 안에 중앙 관측소를 지나는 표식은 어느 쪽에서 출발하나요?",
+    };
+    const statuses = {waiting: "대기", held: "직전값 유지", fresh: "갱신", dropout: "수신 누락"};
+    let items = [], index = 0, selected = null;
+
+    function circle(ctx, x, y, r, fill, stroke) {
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI);
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+    }
+
+    function drawMap(g) {
+      const ctx = el("map").getContext("2d");
+      ctx.clearRect(0, 0, 600, 290);
+      const scale = 258;
+      const point = ([x, y]) => [300 + x * scale, 140 - y * scale];
+      const [lx, ly] = point(g.left), [rx, ry] = point(g.right);
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry);
+      ctx.strokeStyle = "#c1cec2"; ctx.lineWidth = 2; ctx.stroke();
+      for (const [key, label] of [["left", "왼쪽 관문"], ["center", "관측소"], ["right", "오른쪽 관문"]]) {
+        const [x, y] = point(g[key]);
+        const station = key === "center", radius = g.radius * scale;
+        circle(ctx, x, y, radius, station ? "#e0eee8" : "#f3e7db", station ? "#21685e" : "#9c5c34");
+        circle(ctx, x, y, 4, station ? "#21685e" : "#9c5c34");
+        ctx.fillStyle = "#253e36"; ctx.textAlign = "center"; ctx.font = "23px system-ui";
+        ctx.fillText(label, x, y + radius + 23);
+      }
+    }
+
+    function drawSignal(s) {
+      const ring = el("ring");
+      const ctx = ring.getContext("2d");
+      ctx.clearRect(0, 0, 180, 180);
+      circle(ctx, 90, 90, 60, null, "#c8d6cb");
+      s.channels.forEach((level, slot) => {
+        const angle = slot * Math.PI / 4;
+        circle(ctx, 90 + 60 * Math.cos(angle), 90 - 60 * Math.sin(angle), 7 + 7 * level,
+          level ? `rgba(14,100,85,${.4 + .6 * level})` : "#dbe4d9", null);
+      });
+      ring.setAttribute("aria-label", s.channels.map((v, i) => `${i + 1}번 채널 세기 ${v * 4}/4`).join(", "));
+      const age = s.age_steps === null ? "대기" : `${s.age_steps * 50} ms`;
+      el("quality").textContent = `불확실성 ${s.uncertainty_level}/8 · 신호 나이 ${age} · ${statuses[s.sensor_status]} · 누락 ${s.dropped ? "있음" : "없음"}`;
+    }
+
+    function render() {
+      selected = null;
+      el("next").disabled = true;
+      for (const side of ["left", "right"]) el(side).setAttribute("aria-pressed", "false");
+      const complete = index === items.length;
+      el("trial").hidden = complete;
+      el("status").hidden = !complete;
+      el("progress").textContent = complete ? `${form.toUpperCase()}형 완료` : `${form.toUpperCase()}형 · ${index + 1} / ${items.length}`;
+      if (complete) { el("status").textContent = "모든 문항을 확인했습니다."; return; }
+      const item = items[index];
+      el("prompt").textContent = prompts[item.goal];
+      el("next").textContent = index === items.length - 1 ? "마치기" : "다음 문항";
+      drawMap(item.geometry); drawSignal(item.signal);
+    }
+
+    for (const side of ["left", "right"]) {
+      el(side).addEventListener("click", () => {
+        selected = side;
+        for (const choice of ["left", "right"]) el(choice).setAttribute("aria-pressed", String(side === choice));
+        el("next").disabled = false;
+      });
+    }
+    el("next").addEventListener("click", () => {
+      if (selected === null) return;
+      index++; render();
+      if (index < items.length) el("prompt").focus();
+    });
+    fetch(`form-${form}.json`).then(response => {
+      if (!response.ok) throw Error();
+      return response.json();
+    }).then(data => { items = data; render(); }).catch(() => {
+      el("status").textContent = "문항 파일을 열 수 없습니다. 미리보기 폴더를 로컬 웹 서버로 열어 주세요.";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "output_mode": "software_only",
+  "evidence_scope": "technical_verification",
+  "split": "development",
+  "config_except_seed": {
+    "dt_s": 0.05,
+    "steps": 600,
+    "evaluation_start_step": 100,
+    "evaluation_end_step": 600,
+    "arena_half_width": 1.0,
+    "control_gain": 2.0,
+    "drag": 1.2,
+    "max_speed": 1.5,
+    "flow_strength": 0.65,
+    "flow_period_s": 9.0,
+    "target_radius": 0.5,
+    "target_period_s": 16.0,
+    "sensor_noise_std": 0.18,
+    "sensor_period_steps": 4,
+    "sensor_delay_steps": 4,
+    "sensor_dropout_probability": 0.1,
+    "feedback_period_steps": 4
+  },
+  "estimator_id": "rw-kalman-v1",
+  "encoder_id": "polar8-v1",
+  "component_changes": [],
+  "map_layouts": [
+    {
+      "name": "D1",
+      "center": [
+        0.0,
+        0.0
+      ],
+      "distance": 0.37,
+      "bearing_deg": 0.0,
+      "radius": 0.15,
+      "first_seed": 1100
+    },
+    {
+      "name": "D2",
+      "center": [
+        -0.05,
+        0.06
+      ],
+      "distance": 0.43,
+      "bearing_deg": 16.0,
+      "radius": 0.16,
+      "first_seed": 2100
+    }
+  ],
+  "consecutive_seeds_per_map": 48,
+  "choice_tick": 24,
+  "post_choice_ticks": 32,
+  "throttle_divisions": 20,
+  "min_gap_in_grid_steps": 2,
+  "candidate_scenes": 96,
+  "eligible_scenes": 19,
+  "reasons": {
+    "neither_marker_hit": 46,
+    "thrust_tie_or_small_margin": 8,
+    "unreachable_gate": 23,
+    "eligible": 19
+  },
+  "eligible_left_right_by_map": {
+    "D1": {
+      "left": 6,
+      "right": 2
+    },
+    "D2": {
+      "left": 2,
+      "right": 9
+    }
+  },
+  "eligible_scenes_without_a_code_direction": 2,
+  "eligible_paired_scores": {
+    "items": 38,
+    "correct": {
+      "always_left": 19,
+      "always_right": 19,
+      "goal_only": 22,
+      "follow_code": 19,
+      "oppose_code": 19,
+      "screen_and_goal": 22,
+      "code_and_goal": 36,
+      "drifting_screen_and_goal": 38
+    }
+  }
+}
