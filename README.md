@@ -10,7 +10,7 @@ Augneta는 외부 계산이 제공하는 정보를 인간의 감각·행동 능�
 
 The first runnable software experiment is implemented: deterministic hidden-flow tracking, direct keyboard control, a causal estimator, matched feedback views, recording/replay, and CPU-only synthetic checks. [Verification results](docs/VERIFICATION.md) distinguish automated software checks from human and physical evidence.
 
-No human learning, embodiment, sensory extension, physical feedback, neural, or consciousness result has been established. The sensory-code display is a development preview, not haptic delivery.
+Human learning with Augneta’s own interface, embodiment, sensory extension, physical feedback, neural change, and consciousness remain open research questions. The sensory-code display is a development preview, not haptic delivery.
 
 The initial documents were prepared on 2026-10-14 from a protocol drafted on 2026-10-07. This repository is independent of Augnes and does not require its runtime or validation suites.
 
@@ -23,7 +23,7 @@ The initial documents were prepared on 2026-10-14 from a protocol drafted on 202
 | P3 — Biological inputs and adaptation | How can actual EMG or neural signals support reliable inputs and selective recalibration? |
 | P4 — Predictive sensory input (planned) | Can people use a forecast and its uncertainty when the same present state has different possible futures? |
 
-The first original learning study will test whether people can use the same hidden-flow signal to accomplish unfamiliar goals. A parallel reanalysis of public human movement data will inform how P2 measures the cost of changing an interface. P3 and the P4 forecast comparison can proceed independently. The [research roadmap](docs/RESEARCH_ROADMAP.md) sets the work order, deliverables, and decisions for each path.
+The first original learning study will test whether people can use the same hidden-flow signal to accomplish unfamiliar goals. The [completed reanalysis of 105 participants](research/visuomotor-transition/README.md) reproduced the published final no-cursor group difference and informed the P2 decision to measure transition error, final performance, and performance on reconnection separately. P3 and the P4 forecast comparison can proceed independently. The [research roadmap](docs/RESEARCH_ROADMAP.md) sets the work order, deliverables, and decisions for each path.
 
 ## First implementation
 
@@ -31,7 +31,7 @@ Steer a point toward a moving target while an unseen force affects its motion. A
 
 The first implementation includes deterministic logging and replay, normalized tracking error, focused automated tests, and a CPU-only synthetic-policy smoke run. It does not require a paid model API or physical haptic device.
 
-The simulation and analysis use Python's standard library; Flask serves a local browser UI with plain JavaScript. No model API, GPU, npm build, external data, or device is required.
+The demo uses Python’s standard library for simulation and analysis. Flask serves its local browser UI with plain JavaScript. No model API, GPU, npm build, external data, or device is required.
 
 ## Install and launch
 

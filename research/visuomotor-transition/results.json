@@ -1,0 +1,242 @@
+{
+  "source": {
+    "paper_doi": "10.1038/s41598-023-32068-8",
+    "file_record": "https://api.osf.io/v2/files/6279ce1247df8504916f00fd/",
+    "download": "https://osf.io/download/es9m7/?revision=1",
+    "version": 1,
+    "sha256": "79bb76e60114d59210e70c80f2ccc352e3e03554f2f57721ca3c0411a1099d06"
+  },
+  "audit": {
+    "rows": 42246,
+    "participants": 105,
+    "cursor_reaches": 27720,
+    "no_cursor_reaches": 14526,
+    "rows_with_missing_cells": 0,
+    "duplicated_trial_keys": 0,
+    "nonfinite_normalized_deviations": 33
+  },
+  "groups": {
+    "abrupt": {
+      "participants": 35,
+      "per_participant_exposure": {
+        "transition_cursor_reaches": 198,
+        "transition_no_cursor_reaches": 108,
+        "transition_rotation_deg_reaches": 11880,
+        "transition_60deg_cursor_reaches": 198,
+        "final_cursor_reaches": 66,
+        "final_without_strategy_reaches": 18
+      },
+      "outcomes": {
+        "transition_error_deg_reaches": {
+          "mean": 3074.9706650432017,
+          "sd": 1316.3901423208686,
+          "ci95": [
+            2622.7748298055094,
+            3527.166500280894
+          ]
+        },
+        "final_cursor_error_deg": {
+          "mean": 10.699129296692007,
+          "sd": 6.598461831185349,
+          "ci95": [
+            8.432478352484623,
+            12.965780240899392
+          ]
+        },
+        "final_aftereffect_deg": {
+          "mean": 12.038448929740099,
+          "sd": 5.336865000381754,
+          "ci95": [
+            10.205171659717674,
+            13.871726199762524
+          ]
+        },
+        "last_six_hand_deviation_deg": {
+          "mean": 53.4618428618301,
+          "sd": 8.472323794400168,
+          "ci95": [
+            50.551497811799244,
+            56.372187911860955
+          ]
+        }
+      },
+      "spearman_with_transition_error": {
+        "final_cursor_error_deg": {
+          "rho": 0.8834733893557422,
+          "paired_percentile_ci95": [
+            0.7274758891334427,
+            0.95735008786435
+          ]
+        },
+        "final_aftereffect_deg": {
+          "rho": -0.011484593837534996,
+          "paired_percentile_ci95": [
+            -0.389920646767711,
+            0.3712762610264348
+          ]
+        }
+      }
+    },
+    "ramped": {
+      "participants": 33,
+      "per_participant_exposure": {
+        "transition_cursor_reaches": 198,
+        "transition_no_cursor_reaches": 90,
+        "transition_rotation_deg_reaches": 10050,
+        "transition_60deg_cursor_reaches": 138,
+        "final_cursor_reaches": 66,
+        "final_without_strategy_reaches": 18
+      },
+      "outcomes": {
+        "transition_error_deg_reaches": {
+          "mean": 3074.7187297810824,
+          "sd": 1356.890849243032,
+          "ci95": [
+            2593.586155498044,
+            3555.851304064121
+          ]
+        },
+        "final_cursor_error_deg": {
+          "mean": 13.033625584966467,
+          "sd": 6.279498436730492,
+          "ci95": [
+            10.807012258068484,
+            15.26023891186445
+          ]
+        },
+        "final_aftereffect_deg": {
+          "mean": 11.178747927021425,
+          "sd": 9.382058808402451,
+          "ci95": [
+            7.852014528325606,
+            14.505481325717243
+          ]
+        },
+        "last_six_hand_deviation_deg": {
+          "mean": 50.43815175163786,
+          "sd": 7.986764632987543,
+          "ci95": [
+            47.60616815457422,
+            53.2701353487015
+          ]
+        }
+      },
+      "spearman_with_transition_error": {
+        "final_cursor_error_deg": {
+          "rho": 0.9532085561497325,
+          "paired_percentile_ci95": [
+            0.8786745893362432,
+            0.97987935998219
+          ]
+        },
+        "final_aftereffect_deg": {
+          "rho": -0.07787433155080216,
+          "paired_percentile_ci95": [
+            -0.4018445010445348,
+            0.27898169447953003
+          ]
+        }
+      }
+    },
+    "stepped": {
+      "participants": 37,
+      "per_participant_exposure": {
+        "transition_cursor_reaches": 198,
+        "transition_no_cursor_reaches": 108,
+        "transition_rotation_deg_reaches": 5940,
+        "transition_60deg_cursor_reaches": 0,
+        "final_cursor_reaches": 66,
+        "final_without_strategy_reaches": 18
+      },
+      "outcomes": {
+        "transition_error_deg_reaches": {
+          "mean": 1584.6554470445826,
+          "sd": 388.4313401002657,
+          "ci95": [
+            1455.145990325495,
+            1714.1649037636703
+          ]
+        },
+        "final_cursor_error_deg": {
+          "mean": 11.432027918646487,
+          "sd": 3.507432140287036,
+          "ci95": [
+            10.262591819977448,
+            12.601464017315525
+          ]
+        },
+        "final_aftereffect_deg": {
+          "mean": 21.96355500674491,
+          "sd": 8.069290266603224,
+          "ci95": [
+            19.273119682276377,
+            24.653990331213446
+          ]
+        },
+        "last_six_hand_deviation_deg": {
+          "mean": 51.64279186075507,
+          "sd": 4.84999486119133,
+          "ci95": [
+            50.025723064501086,
+            53.25986065700905
+          ]
+        }
+      },
+      "spearman_with_transition_error": {
+        "final_cursor_error_deg": {
+          "rho": 0.6431958274063538,
+          "paired_percentile_ci95": [
+            0.37569411776626194,
+            0.8164973521511059
+          ]
+        },
+        "final_aftereffect_deg": {
+          "rho": -0.21147463252726406,
+          "paired_percentile_ci95": [
+            -0.5220563991387043,
+            0.1294474271728215
+          ]
+        }
+      }
+    }
+  },
+  "correlation_bootstrap": {
+    "participant_resamples": 10000,
+    "seed": 20261122
+  },
+  "final_without_strategy_test": {
+    "one_way_anova": {
+      "df_between": 2,
+      "df_within": 102,
+      "F": 21.4310849031457,
+      "p": 1.697870161178987e-08,
+      "eta_squared": 0.29588242302049167
+    },
+    "tukey_kramer": {
+      "stepped_minus_abrupt": {
+        "difference_deg": 9.925106077004813,
+        "simultaneous_ci95_deg": [
+          5.577800562055333,
+          14.272411591954292
+        ],
+        "adjusted_p": 1.1442839158437579e-06
+      },
+      "stepped_minus_ramped": {
+        "difference_deg": 10.784807079723487,
+        "simultaneous_ci95_deg": [
+          6.370322682757,
+          15.199291476689975
+        ],
+        "adjusted_p": 2.134747693061101e-07
+      },
+      "abrupt_minus_ramped": {
+        "difference_deg": 0.8597010027186744,
+        "simultaneous_ci95_deg": [
+          -3.613848653372518,
+          5.333250658809867
+        ],
+        "adjusted_p": 0.8913680364300887
+      }
+    }
+  }
+}
