@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Augneta · 부표 훈련과 관문 검사</title>
+  <link rel="stylesheet" href="/ui/pilot.css">
+</head>
+<body>
+  <main>
+    <header><div class="brand">Augneta</div><span id="status" role="status">리허설 불러오는 중</span></header>
+    <p id="error" role="alert" hidden></p>
+    <section id="welcome" hidden>
+      <h1>흐름을 읽고 부표를 조종하세요</h1>
+      <p>원의 여덟 위치는 물이 흐르는 방향을 나타냅니다. 켜진 점이 있는 쪽으로 물이 흐르고, 점이 크고 진할수록 흐름이 강합니다.</p>
+      <div class="example"><canvas id="example-code" width="180" height="180" role="img"></canvas>
+        <p><strong>예시</strong><br>오른쪽 위 점이 켜지면 물은 오른쪽 위로 흐릅니다. 어떤 방향으로 움직일지는 직접 결정합니다.</p></div>
+      <p>여덟 방향을 연습한 뒤, 30초씩 두 번 부표를 중앙에 유지합니다. 마지막에는 관문 16개를 고릅니다.</p>
+      <p class="minor">이 로컬 리허설은 연습 응답, 조작, 시간, 관문 선택을 이 기기에 저장합니다. 이름은 입력하지 않습니다.</p>
+      <button class="primary" id="start">방향 연습 시작</button>
+    </section>
+    <section id="practice" hidden>
+      <h1>물이 어느 쪽으로 흐르나요?</h1>
+      <div class="practice-row panel"><canvas id="practice-code" width="180" height="180" role="img"></canvas>
+        <div id="direction-buttons" class="compass" aria-label="흐름 방향 선택"></div></div>
+      <p id="practice-feedback" aria-live="polite"></p>
+      <button id="practice-next" class="primary" hidden>계속</button>
+    </section>
+    <section id="training-ready" hidden>
+      <h1>부표를 중앙에 유지하세요</h1>
+      <p id="arm-description"></p>
+      <p>방향키·WASD 또는 화면의 추진 버튼을 누르고 있으면 그쪽으로 힘을 가합니다. 손을 떼면 추진이 멈춥니다. 창을 벗어나면 훈련이 일시정지됩니다.</p>
+      <button class="primary" id="train-begin">30초 훈련 시작</button>
+    </section>
+    <section id="live" hidden>
+      <div class="titlerow"><h1 id="live-title"></h1><span id="time"></span></div>
+      <p id="frozen" hidden>훈련이 멈춰 있습니다. 계속을 누르면 같은 지점에서 이어집니다.</p>
+      <div id="field" class="instruments">
+        <div class="panel arena-panel">
+          <canvas id="map" width="600" height="290" role="img"></canvas>
+        </div>
+        <div class="panel signal"><h2 id="signal-title"></h2>
+          <canvas id="ring" width="180" height="180" role="img"></canvas><p id="quality"></p>
+        </div>
+      </div>
+      <div id="controls" class="controls">
+        <div class="compass pad" aria-label="부표 추진 조작">
+          <button class="north" data-key="up" aria-label="위로 추진">↑</button>
+          <button class="west" data-key="left" aria-label="왼쪽으로 추진">←</button>
+          <button class="south" data-key="down" aria-label="아래로 추진">↓</button>
+          <button class="east" data-key="right" aria-label="오른쪽으로 추진">→</button>
+        </div>
+        <button id="pause"></button>
+      </div>
+      <div id="gate-controls" class="controls" hidden>
+        <div class="buttons"><button id="left" aria-pressed="false">왼쪽 관문</button><button id="right" aria-pressed="false">오른쪽 관문</button></div>
+        <button class="primary" id="choose" disabled>선택 확정</button>
+      </div>
+    </section>
+    <section id="transfer-ready" hidden>
+      <h1>두 관문 중 하나를 선택하세요</h1>
+      <p>중앙에서 출발하거나 관문에서 표식을 놓게 됩니다. 각 문항에 적힌 목표를 읽고 고르세요. 두 관문은 중앙에서 같은 거리에 있습니다.</p>
+      <p>총 16문항입니다. 확정한 선택은 되돌릴 수 없습니다. 결과는 모든 문항을 마친 뒤 확인할 수 있습니다.</p>
+      <button class="primary" id="gate-begin">관문 검사 시작</button>
+    </section>
+    <section id="reflection" hidden>
+      <h1>어떻게 선택했나요?</h1>
+      <label for="note">선택할 때 무엇을 살폈는지 자유롭게 적어 주세요. 비워 두어도 됩니다.</label>
+      <textarea id="note" rows="3" maxlength="600"></textarea>
+      <button class="primary" id="finish">결과 보기</button>
+    </section>
+    <section id="complete" hidden>
+      <h1>첫 관문 검사 결과</h1>
+      <div class="panel"><strong id="score" class="score"></strong><p id="score-detail"></p></div>
+      <p id="training-detail"></p>
+      <details><summary>문항별 선택과 정답</summary><ol id="review"></ol></details>
+      <div class="buttons"><button id="download">내 결과 JSON</button><button id="again">새 리허설</button></div>
+    </section>
+    <footer>Augneta P1 · 첫 세션 리허설</footer>
+  </main>
+  <script type="module" src="/ui/pilot.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "output_mode": "software_only",
+  "evidence_scope": "technical_verification",
+  "protocol": "p1-first-session-v1",
+  "arms": {
+    "code": {
+      "started": 2,
+      "first_blocks_completed": 2,
+      "sessions_finished": 2,
+      "mean_first_block_accuracy": 0.5
+    },
+    "arrow": {
+      "started": 2,
+      "first_blocks_completed": 2,
+      "sessions_finished": 2,
+      "mean_first_block_accuracy": 0.5
+    }
+  },
+  "first_block_code_minus_arrow_percentage_points": 0.0,
+  "chromium": "153.0.8010.0",
+  "scripted_gate_policy": "always_left",
+  "completed_cells": [
+    {
+      "arm": "arrow",
+      "form": "A",
+      "correct": 8,
+      "total": 16,
+      "foreground_s": [
+        30.27,
+        30.33
+      ]
+    },
+    {
+      "arm": "arrow",
+      "form": "B",
+      "correct": 8,
+      "total": 16,
+      "foreground_s": [
+        30.33,
+        30.3
+      ]
+    },
+    {
+      "arm": "code",
+      "form": "A",
+      "correct": 8,
+      "total": 16,
+      "foreground_s": [
+        30.32,
+        30.28
+      ]
+    },
+    {
+      "arm": "code",
+      "form": "B",
+      "correct": 8,
+      "total": 16,
+      "foreground_s": [
+        30.13,
+        30.38
+      ]
+    }
+  ]
+}
