@@ -1,4 +1,4 @@
-"""Run four synthetic first sessions through the ordinary browser UI."""
+"""Exercise the randomized first session or a two-visit self-check through the browser."""
 
 import argparse
 import asyncio
@@ -19,14 +19,42 @@ class QuietRequests(WSGIRequestHandler):
         pass
 
 
-async def exercise(browser, base_url, width, index, out):
+async def play_gates(page, phase, total, index, out):
+    items = []
+    await page.wait_for_selector(f"body[data-phase={phase}]")
+    for i in range(total):
+        saved = await page.evaluate("fetch('/api/session').then(r=>r.json())")
+        assert saved["phase"] == phase and saved["index"] == i
+        assert set(saved["item"]) == {"geometry","goal","signal"}
+        assert not {"answer","score","correct","result"} & saved.keys()
+        items.append(saved["item"])
+        assert await page.locator("#signal-title").text_content() == "고정 부호"
+        assert await page.locator("#score").is_hidden() and await page.locator("#review").is_hidden()
+        assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        if i == 0:
+            await page.screenshot(path=out / f"{phase}-{index}.png")
+        if i == 4 and index == 1:
+            await page.reload()
+            await page.wait_for_selector(f"body[data-phase={phase}]")
+            assert saved == await page.evaluate("fetch('/api/session').then(r=>r.json())")
+        await page.locator("#left").click()
+        await page.locator("#choose").click()
+        await page.wait_for_function("""([phase, i, total]) => document.body.dataset.phase !== phase ||
+              document.getElementById('status').textContent.endsWith((i + 2) + ' / ' + total)""",
+                                     arg=[phase, i, total])
+    return items
+
+
+async def exercise(browser, base_url, width, index, out, self_check=False):
     context = await browser.new_context(viewport={"width":width,"height":780}, accept_downloads=True)
     page = await context.new_page()
     page.set_default_timeout(12000)
-    errors, paths, transfer_items = [], set(), []
+    errors, paths = [], set()
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.on("request", lambda req: paths.add(req.url.removeprefix(base_url)))
     await page.goto(base_url + "/")
+    if self_check:
+        await page.locator("#exposure").select_option("rule")
     await page.locator("#start").click()
     for slot in PRACTICE_SLOTS:
         await page.locator(f'[data-slot="{slot}"]').click()
@@ -67,28 +95,22 @@ async def exercise(browser, base_url, width, index, out):
         phase = "training_ready" if block == 1 else "transfer_ready"
         await page.wait_for_selector(f"body[data-phase={phase}]",timeout=75000)
     await page.locator("#gate-begin").click()
-    for i in range(16):
-        saved = await page.evaluate("fetch('/api/session').then(r=>r.json())")
-        assert saved["phase"] == "transfer" and saved["index"] == i
-        assert set(saved["item"]) == {"geometry","goal","signal"}
-        assert not {"answer","score","correct","result"} & saved.keys()
-        transfer_items.append(saved["item"])
-        assert await page.locator("#signal-title").text_content() == "고정 부호"
-        assert await page.locator("#score").is_hidden() and await page.locator("#review").is_hidden()
-        assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        if i == 0:
-            await page.screenshot(path=out / f"transfer-{index}.png")
-        if i == 4 and index == 1:
-            await page.reload()
-            await page.wait_for_selector("body[data-phase=transfer]")
-            assert saved == await page.evaluate("fetch('/api/session').then(r=>r.json())")
-        await page.locator("#left").click()
-        await page.locator("#choose").click()
-        await page.wait_for_function("""i => document.body.dataset.phase !== 'transfer' ||
-              document.getElementById('status').textContent.endsWith((i + 2) + ' / 16')""", arg=i)
+    transfer_items = await play_gates(page, "transfer", 16, index, out)
     await page.wait_for_selector("body[data-phase=reflection]")
     assert "result" not in await page.evaluate("fetch('/api/session').then(r=>r.json())")
     await page.locator("#finish").click()
+    if self_check:
+        await page.wait_for_selector("body[data-phase=return_wait]")
+        assert not await page.locator("#score").is_visible()
+        await context.clear_cookies()
+        await page.set_viewport_size({"width":360, "height":780})
+        await page.reload()
+        await page.locator("#return-begin").click()
+        await play_gates(page, "retention", 16, index, out)
+        await page.locator("#diagnostic-begin").click()
+        await play_gates(page, "diagnostic", 8, index, out)
+        await page.wait_for_selector("body[data-phase=return_reflection]")
+        await page.locator("#finish").click()
     await page.wait_for_selector("body[data-phase=complete]")
     assert await page.locator("#score").text_content() == "8 / 16"
     async with page.expect_download() as download:
@@ -98,17 +120,34 @@ async def exercise(browser, base_url, width, index, out):
     assert mode == {"code":"고정 부호","arrow":"흐름 화살표"}[payload["arm"]]
     assert not errors and not any("item-key" in p or "form-" in p or "/results/" in p for p in paths)
     assert not payload["human_evidence"] and not payload["hardware_verified"]
+    if self_check:
+        assert payload["started_before_target"] and payload["prior_exposure"] == "rule"
+        assert (payload["retention"]["correct"], payload["diagnostic"]["correct"]) == (8, 4)
+        assert (await download.value).suggested_filename == "augneta-p1-self-check.json"
+        assert await page.locator("#again").is_hidden() and await page.locator("#return-score").is_visible()
+        assert len(await page.locator("#review li").all()) == 40
     await context.close()
     return payload, transfer_items
 
 
 async def run(args, database):
-    server = make_server("127.0.0.1",0, create_app(database,"synthetic"), threaded=True, request_handler=QuietRequests)
+    server = make_server("127.0.0.1",0, create_app(database,"synthetic",self_check=args.self_check), threaded=True, request_handler=QuietRequests)
     thread = Thread(target=server.serve_forever,daemon=True)
     thread.start()
     try:
         async with async_playwright() as pw:
             async with await pw.chromium.launch(executable_path=args.chromium) as browser:
+                if args.self_check:
+                    result, _ = await exercise(browser, f"http://127.0.0.1:{server.server_port}", 1050, 0, args.out, True)
+                    summary = {"participant_kind":"synthetic", "human_evidence":False, "chromium":browser.version,
+                               "viewports_px":[1050,360], "training_steps":sum(b["steps"] for b in result["training"]),
+                               "first_correct":result["correct"], "retention_correct":result["retention"]["correct"],
+                               "diagnostic_correct":result["diagnostic"]["correct"], "scripted_gate_policy":"always_left",
+                               "actual_interval_seconds":result["actual_interval_seconds"],
+                               "early_return":result["started_before_target"], "checked_download":True}
+                    (args.out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+                    print(json.dumps(summary, indent=2))
+                    return
                 work = [exercise(browser, f"http://127.0.0.1:{server.server_port}", width, i, args.out)
                         for i,width in enumerate((1050,360,360,1050))]
                 runs = await asyncio.gather(*work)
@@ -135,6 +174,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out",type=Path,required=True,help="New directory for screenshots and aggregate results")
     parser.add_argument("--chromium",help="Optional Chromium or headless shell executable")
+    parser.add_argument("--self-check",action="store_true",help="Check both visits and download in the single-operator mode")
     args = parser.parse_args()
     args.out.mkdir(parents=True,exist_ok=False)
     with TemporaryDirectory() as tmp:

@@ -92,3 +92,39 @@ def test_screen_lookup_ceiling_counts_only_indistinguishable_inputs():
     items.append((case("left", 4), "reach"))
     assert screen_lookup_ceiling(items, False) == 2
     assert screen_lookup_ceiling(items, True) == 3
+
+
+def test_followup_pairs_and_new_scenes_match_the_physical_key():
+    from make_followup import PROBE_MAPS, RETENTION_MAPS, audit, first_forms
+    from gate_task import measure_case
+    from run_study import stimulus
+
+    bank = json.loads((ROOT / "followup/bank.json").read_text())
+    audit_file = json.loads((ROOT / "followup/audit.json").read_text())
+    first = first_forms()
+    old_seeds = {int(r["seed"]) for rows in first.values() for r in rows}
+    old_stimuli = {json.dumps(r["item"], sort_keys=True) for rows in first.values() for r in rows}
+    layouts = {m.name: m for m in RETENTION_MAPS + PROBE_MAPS}
+    by_pair = {}
+    for block, rows in bank.items():
+        assert len({json.dumps(r["item"], sort_keys=True) for r in rows}) == len(rows)
+        assert not any(json.dumps(r["item"], sort_keys=True) in old_stimuli for r in rows)
+        for row in rows:
+            seed, goal = row["seed"], row["item"]["goal"]
+            assert seed not in old_seeds | {710003, 710029}
+            case = measure_case(layouts[row["map"]], seed)
+            assert case["reason"] == "eligible" and case["answers"][goal] == row["answer"]
+            assert json.loads(json.dumps(stimulus(case, goal))) == row["item"]
+            if block == "diagnostic":
+                by_pair.setdefault(seed, []).append(row)
+    r, g = bank["retention"], bank["diagnostic"]
+    assert len({row["seed"] for row in r}) == 16
+    assert not set(by_pair) & {row["seed"] for row in r}
+    assert len(by_pair) == 4
+    for a, b in by_pair.values():
+        assert a["item"]["goal"] == b["item"]["goal"] and a["item"]["signal"] == b["item"]["signal"]
+        assert a["item"]["geometry"] != b["item"]["geometry"] and a["answer"] != b["answer"]
+    assert Counter((row["map"], row["item"]["goal"], row["answer"]) for row in r).most_common(1)[0][1] == 1
+    all_rows = {**first, "R": r, "G": g}
+    assert {name:audit(rows) for name, rows in all_rows.items()} == audit_file["scores"]
+    assert audit(g)["signal_goal_lookup_ceiling"] == 4 and audit(g)["map_signal_goal"] == 8

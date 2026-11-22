@@ -25,6 +25,8 @@ The initial documents were prepared on 2026-10-14 from a protocol drafted on 202
 
 The first original learning study will test whether people can use the same hidden-flow signal to accomplish unfamiliar goals. A parallel reanalysis of public human movement data will inform how P2 measures the cost of changing an interface. P3 and the P4 forecast comparison can proceed independently. The [research roadmap](docs/RESEARCH_ROADMAP.md) sets the work order, deliverables, and decisions for each path.
 
+For a local P1 self-check on a Mac, open `Start-P1.command` in the project folder. The [Korean start guide](research/p1-gates/pilot/START_HERE.ko.md) covers both visits without showing test answers.
+
 ## First implementation
 
 Steer a point toward a moving target while an unseen force affects its motion. A baseline random-walk Kalman filter receives sampled, noisy, delayed observations. Select no additional information, a matched visual dashboard, or a clearly labelled sensory-code preview. The main UI applies your action directly; it has no autopilot.

@@ -22,6 +22,8 @@ button:disabled { opacity:.42; cursor:default; } :focus-visible { outline:3px so
 .practice-row .compass { flex:1; max-width:350px; } #practice-feedback { margin-top:12px; }
 .score { font-size:32px; } details { margin:12px 0 18px; } summary { cursor:pointer; } #review { line-height:1.8; }
 textarea { display:block; width:100%; margin:8px 0 14px; border:1px solid #879d8e; border-radius:6px; padding:8px; }
+#personal-intro { margin:16px 0; } #personal-intro p { margin-bottom:12px; }
+#exposure { display:block; max-width:100%; padding:7px; margin-top:5px; font:inherit; }
 footer { margin-top:25px; border-top:1px solid #c7d4c7; padding-top:10px; } #error { color:#8b3326; margin-top:15px; }
 @media(max-width:570px) {
   main { padding:16px; } section { padding-top:19px; } .panel,.example { padding:11px; }

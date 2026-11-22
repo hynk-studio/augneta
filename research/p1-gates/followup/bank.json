@@ -1,0 +1,942 @@
+{
+  "retention": [
+    {
+      "map": "R4",
+      "seed": 123019,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            -0.025,
+            0.045
+          ],
+          "left": [
+            -0.43846475314579975,
+            0.19548886306329422
+          ],
+          "right": [
+            0.3884647531457997,
+            -0.10548886306329423
+          ],
+          "radius": 0.17
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R1",
+      "seed": 120021,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.025,
+            -0.035
+          ],
+          "left": [
+            -0.35013247494231553,
+            0.05160615592238803
+          ],
+          "right": [
+            0.4001324749423156,
+            -0.12160615592238803
+          ],
+          "radius": 0.15
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R1",
+      "seed": 120009,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.025,
+            -0.035
+          ],
+          "left": [
+            -0.35013247494231553,
+            0.05160615592238803
+          ],
+          "right": [
+            0.4001324749423156,
+            -0.12160615592238803
+          ],
+          "radius": 0.15
+        },
+        "signal": {
+          "channels": [
+            0.75,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R2",
+      "seed": 121032,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            -0.045,
+            -0.015
+          ],
+          "left": [
+            -0.45489066134698214,
+            -0.07992030299169581
+          ],
+          "right": [
+            0.36489066134698217,
+            0.04992030299169581
+          ],
+          "radius": 0.165
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R2",
+      "seed": 121019,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            -0.045,
+            -0.015
+          ],
+          "left": [
+            -0.45489066134698214,
+            -0.07992030299169581
+          ],
+          "right": [
+            0.36489066134698217,
+            0.04992030299169581
+          ],
+          "radius": 0.165
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R3",
+      "seed": 122057,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.04,
+            0.035
+          ],
+          "left": [
+            -0.2984221069168774,
+            -0.10173140659680788
+          ],
+          "right": [
+            0.3784221069168774,
+            0.17173140659680788
+          ],
+          "radius": 0.145
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R2",
+      "seed": 121035,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            -0.045,
+            -0.015
+          ],
+          "left": [
+            -0.45489066134698214,
+            -0.07992030299169581
+          ],
+          "right": [
+            0.36489066134698217,
+            0.04992030299169581
+          ],
+          "radius": 0.165
+        },
+        "signal": {
+          "channels": [
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R4",
+      "seed": 123039,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            -0.025,
+            0.045
+          ],
+          "left": [
+            -0.43846475314579975,
+            0.19548886306329422
+          ],
+          "right": [
+            0.3884647531457997,
+            -0.10548886306329423
+          ],
+          "radius": 0.17
+        },
+        "signal": {
+          "channels": [
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R2",
+      "seed": 121052,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            -0.045,
+            -0.015
+          ],
+          "left": [
+            -0.45489066134698214,
+            -0.07992030299169581
+          ],
+          "right": [
+            0.36489066134698217,
+            0.04992030299169581
+          ],
+          "radius": 0.165
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 8,
+          "dropped": true,
+          "sensor_status": "dropout"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R3",
+      "seed": 122031,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.04,
+            0.035
+          ],
+          "left": [
+            -0.2984221069168774,
+            -0.10173140659680788
+          ],
+          "right": [
+            0.3784221069168774,
+            0.17173140659680788
+          ],
+          "radius": 0.145
+        },
+        "signal": {
+          "channels": [
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R3",
+      "seed": 122003,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.04,
+            0.035
+          ],
+          "left": [
+            -0.2984221069168774,
+            -0.10173140659680788
+          ],
+          "right": [
+            0.3784221069168774,
+            0.17173140659680788
+          ],
+          "radius": 0.145
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "R1",
+      "seed": 120013,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.025,
+            -0.035
+          ],
+          "left": [
+            -0.35013247494231553,
+            0.05160615592238803
+          ],
+          "right": [
+            0.4001324749423156,
+            -0.12160615592238803
+          ],
+          "radius": 0.15
+        },
+        "signal": {
+          "channels": [
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R4",
+      "seed": 123018,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            -0.025,
+            0.045
+          ],
+          "left": [
+            -0.43846475314579975,
+            0.19548886306329422
+          ],
+          "right": [
+            0.3884647531457997,
+            -0.10548886306329423
+          ],
+          "radius": 0.17
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.75,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R1",
+      "seed": 120024,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.025,
+            -0.035
+          ],
+          "left": [
+            -0.35013247494231553,
+            0.05160615592238803
+          ],
+          "right": [
+            0.4001324749423156,
+            -0.12160615592238803
+          ],
+          "radius": 0.15
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R3",
+      "seed": 122005,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.04,
+            0.035
+          ],
+          "left": [
+            -0.2984221069168774,
+            -0.10173140659680788
+          ],
+          "right": [
+            0.3784221069168774,
+            0.17173140659680788
+          ],
+          "radius": 0.145
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.25,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "R4",
+      "seed": 123005,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            -0.025,
+            0.045
+          ],
+          "left": [
+            -0.43846475314579975,
+            0.19548886306329422
+          ],
+          "right": [
+            0.3884647531457997,
+            -0.10548886306329423
+          ],
+          "radius": 0.17
+        },
+        "signal": {
+          "channels": [
+            0.25,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    }
+  ],
+  "diagnostic": [
+    {
+      "map": "G1",
+      "seed": 140067,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "G2",
+      "seed": 140043,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "G1",
+      "seed": 140000,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "G2",
+      "seed": 140063,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "G1",
+      "seed": 140043,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    },
+    {
+      "map": "G2",
+      "seed": 140067,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "G1",
+      "seed": 140063,
+      "item": {
+        "goal": "release",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "right"
+    },
+    {
+      "map": "G2",
+      "seed": 140000,
+      "item": {
+        "goal": "reach",
+        "geometry": {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "left": [
+            -0.08467266345988368,
+            0.33960350419659874
+          ],
+          "right": [
+            0.08467266345988368,
+            -0.33960350419659874
+          ],
+          "radius": 0.16
+        },
+        "signal": {
+          "channels": [
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "uncertainty_level": 1,
+          "age_steps": 4,
+          "dropped": false,
+          "sensor_status": "fresh"
+        }
+      },
+      "answer": "left"
+    }
+  ]
+}

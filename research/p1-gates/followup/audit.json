@@ -1,0 +1,70 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "hardware_verified": false,
+  "output_mode": "software_only",
+  "evidence_scope": "technical_verification",
+  "retention_candidates": 512,
+  "retention_available": {
+    "R1": {
+      "left": 10,
+      "right": 12
+    },
+    "R2": {
+      "left": 6,
+      "right": 9
+    },
+    "R3": {
+      "left": 18,
+      "right": 14
+    },
+    "R4": {
+      "left": 8,
+      "right": 11
+    }
+  },
+  "probe_seed_pairs_screened": 384,
+  "probe_available_pairs": {
+    "up": 9,
+    "down": 16
+  },
+  "scores": {
+    "A": {
+      "items": 16,
+      "horizontal_readable": 15,
+      "horizontal_right_fallback": 16,
+      "horizontal_left_fallback": 15,
+      "map_signal_goal": 16,
+      "signal_goal_lookup_ceiling": 16,
+      "map_goal_lookup_ceiling": 8
+    },
+    "B": {
+      "items": 16,
+      "horizontal_readable": 15,
+      "horizontal_right_fallback": 16,
+      "horizontal_left_fallback": 15,
+      "map_signal_goal": 16,
+      "signal_goal_lookup_ceiling": 16,
+      "map_goal_lookup_ceiling": 8
+    },
+    "R": {
+      "items": 16,
+      "horizontal_readable": 15,
+      "horizontal_right_fallback": 15,
+      "horizontal_left_fallback": 16,
+      "map_signal_goal": 16,
+      "signal_goal_lookup_ceiling": 16,
+      "map_goal_lookup_ceiling": 8
+    },
+    "G": {
+      "items": 8,
+      "horizontal_readable": 6,
+      "horizontal_right_fallback": 4,
+      "horizontal_left_fallback": 4,
+      "map_signal_goal": 8,
+      "signal_goal_lookup_ceiling": 4,
+      "map_goal_lookup_ceiling": 4
+    }
+  },
+  "diagnostic_criterion_met": true
+}
