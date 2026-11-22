@@ -1,0 +1,17 @@
+{
+  "participant_kind": "synthetic",
+  "human_evidence": false,
+  "chromium": "153.0.8010.0",
+  "viewports_px": [
+    1050,
+    360
+  ],
+  "training_steps": 1200,
+  "first_correct": 8,
+  "retention_correct": 8,
+  "diagnostic_correct": 4,
+  "scripted_gate_policy": "always_left",
+  "actual_interval_seconds": 0.2396860122680664,
+  "early_return": true,
+  "checked_download": true
+}

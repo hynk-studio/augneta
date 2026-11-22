@@ -1,7 +1,9 @@
 import {circle, drawCode, drawMap, prompts, qualityText} from "/display.js";
 
 const el = id => document.getElementById(id);
-const sections = ["welcome", "practice", "training-ready", "live", "transfer-ready", "reflection", "complete"];
+const sections = ["welcome", "practice", "training-ready", "live", "transfer-ready", "return-wait",
+  "diagnostic-ready", "reflection", "complete"];
+const gateTitles = {transfer:"첫 관문 검사", retention:"두 번째 방문 · 첫 묶음", diagnostic:"두 번째 방문 · 마지막 묶음"};
 const directions = ["오른쪽", "오른쪽 위", "위", "왼쪽 위", "왼쪽", "왼쪽 아래", "아래", "오른쪽 아래"];
 const keys = new Map([["ArrowLeft","left"],["KeyA","left"],["ArrowRight","right"],["KeyD","right"],
   ["ArrowUp","up"],["KeyW","up"],["ArrowDown","down"],["KeyS","down"]]);
@@ -132,6 +134,7 @@ function render() {
   document.body.dataset.phase = p;
   if (p === "welcome") {
     show("welcome","첫 세션"); drawCode(el("example-code"), [0,.75,0,0,0,0,0,0]);
+    el("personal-intro").hidden = !s.self_check;
   } else if (p === "practice" || p === "practice_feedback") {
     show("practice",`방향 연습 · ${s.index+1} / ${s.total}`);
     const feedback = p === "practice_feedback";
@@ -158,28 +161,45 @@ function render() {
     el("quality").textContent = qualityText(s.signal);
   } else if (p === "transfer_ready") {
     pause(); show("transfer-ready","첫 관문 검사");
-  } else if (p === "transfer") {
-    show("live",`첫 관문 검사 · ${s.index+1} / ${s.total}`);
+    if (s.self_check) el("first-instructions").textContent = "총 16문항입니다. 확정한 선택은 되돌릴 수 없습니다. 점수는 두 번째 방문을 마치면 볼 수 있습니다.";
+  } else if (p === "return_wait") {
+    show("return-wait","첫 방문 완료");
+    const target = new Date(s.target_at * 1000).toLocaleString("ko-KR");
+    el("return-time").textContent = `다음 방문 목표 시각은 ${target}입니다. 일찍 또는 늦게 시작해도 실제 간격이 기록됩니다.`;
+  } else if (p === "diagnostic_ready") {
+    show("diagnostic-ready","두 번째 방문 · 첫 묶음 완료");
+  } else if (p in gateTitles) {
+    show("live",`${gateTitles[p]} · ${s.index+1} / ${s.total}`);
     el("field").hidden = false; el("frozen").hidden = true;
     el("time").textContent = ""; el("controls").hidden = true; el("gate-controls").hidden = false;
     el("live-title").textContent = prompts[s.item.goal]; el("signal-title").textContent="고정 부호";
-    el("map").setAttribute("aria-label","고정 관측소 양쪽에 같은 거리의 관문이 있습니다.");
     drawMap(el("map"),s.item.geometry); drawCode(el("ring"),s.item.signal.channels);
     el("quality").textContent=qualityText(s.item.signal);
     selectGate(null);
-  } else if (p === "reflection") {
+  } else if (p === "reflection" || p === "return_reflection") {
     show("reflection", "관문 선택 완료");
+    const note = el("note");
+    if (note.dataset.phase !== p) { note.value = ""; note.dataset.phase = p; }
+    el("finish").textContent = s.self_check && p === "reflection" ? "첫 방문 저장" : "결과 보기";
   } else if (p === "complete") {
-    show("complete","리허설 완료");
+    show("complete",s.self_check ? "개인 점검 완료" : "리허설 완료");
     const r=s.result;
+    el("result-title").textContent = s.self_check ? "두 방문의 개인 점검 결과" : "첫 관문 검사 결과";
     el("score").textContent=`${r.correct} / ${r.total}`;
-    el("score-detail").textContent=`도착 ${r.by_goal.reach.correct}/${r.by_goal.reach.total} · 방류 ${r.by_goal.release.correct}/${r.by_goal.release.total} · 방향 연습 ${r.practice_correct}/${r.practice_total}`;
+    el("score-detail").textContent=`첫 검사 · 도착 ${r.by_goal.reach.correct}/${r.by_goal.reach.total} · 방류 ${r.by_goal.release.correct}/${r.by_goal.release.total} · 방향 연습 ${r.practice_correct}/${r.practice_total}`;
     el("training-detail").textContent=`${r.arm === "code" ? "고정 부호" : "화살표"} 훈련 · ${r.form}형 · 훈련 화면 진행 시간 ${r.training.map(b=>b.foreground_s.toFixed(1)+"초").join(" + ")}`;
-    const nodes = r.items.map(item=>{
+    const blocks = [["첫 검사", r.items]];
+    el("again").hidden = Boolean(s.self_check);
+    el("return-score").hidden = !s.self_check;
+    if (s.self_check) {
+      el("return-score").textContent = `재검사 ${r.retention.correct}/${r.retention.total} · 배치 진단 ${r.diagnostic.correct}/${r.diagnostic.total} · 실제 간격 ${(r.actual_interval_seconds/3600).toFixed(2)}시간`;
+      blocks.push(["재검사", r.retention.items], ["배치 진단", r.diagnostic.items]);
+    }
+    const nodes = blocks.flatMap(([title, items]) => items.map(item=>{
       const li=document.createElement("li"), label=v=>v==="right"?"오른쪽":"왼쪽";
-      li.textContent=`${item.goal==="reach"?"도착":"방류"} · 선택 ${label(item.side)} · 정답 ${label(item.answer)}`;
+      li.textContent=`${title} ${item.item} · ${item.goal==="reach"?"도착":"방류"} · 선택 ${label(item.side)} · 정답 ${label(item.answer)}`;
       return li;
-    });
+    }));
     el("review").replaceChildren(...nodes);
   }
 }
@@ -198,7 +218,7 @@ for (const slot of [3,2,1,4,null,0,5,6,7]) {
   }
   el("direction-buttons").append(node);
 }
-el("start").onclick = ()=>send("/api/start",{});
+el("start").onclick = ()=>send("/api/start",state.self_check ? {exposure:el("exposure").value} : {});
 el("practice-next").onclick = ()=>event("continue");
 el("train-begin").onclick = async()=>{
   const before = pauseCount;
@@ -208,11 +228,14 @@ el("pause").onclick = ()=>{ if (running) pause(); else resume(); };
 for (const side of ["left","right"]) el(side).onclick=()=>selectGate(side);
 el("choose").onclick=()=>{ if (selected !== null) event("choose",selected); };
 el("gate-begin").onclick=()=>event("begin");
+el("return-begin").onclick=()=>event("begin");
+el("diagnostic-begin").onclick=()=>event("begin");
 el("finish").onclick=()=>event("finish",el("note").value);
 el("again").onclick=async()=>{ if (await send("/api/new",{})) el("note").value=""; };
 el("download").onclick=()=>{
   const url=URL.createObjectURL(new Blob([JSON.stringify(state.result,null,2)],{type:"application/json"}));
-  const link=document.createElement("a"); link.href=url; link.download="augneta-p1-session.json"; link.click();
+  const link=document.createElement("a"); link.href=url;
+  link.download=state.self_check ? "augneta-p1-self-check.json" : "augneta-p1-session.json"; link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 window.addEventListener("keydown",e=>{

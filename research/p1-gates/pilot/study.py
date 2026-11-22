@@ -23,6 +23,9 @@ PRACTICE_SLOTS = (2, 7, 4, 1, 6, 3, 0, 5)
 TRAINING = tuple(Config(seed=seed, evaluation_start_step=0) for seed in (710003, 710029))
 SIGNAL_FIELDS = ("channels", "uncertainty_level", "age_steps", "dropped", "sensor_status")
 PROTOCOL = "p1-first-session-v1"
+SELF_PROTOCOL = "p1-single-operator-return-v1"
+RETURN_INTERVAL = 24 * 60 * 60
+EXPOSURES = ("new", "rule", "items", "unsure")
 
 
 class Conflict(ValueError):
@@ -45,9 +48,22 @@ def load_bank():
     return stimuli, keys
 
 
+def score_block(items, keys, choices):
+    review = [{"item": i, "goal": item["goal"], **choice, "answer": answer,
+               "correct": choice["side"] == answer}
+              for i, (item, answer, choice) in enumerate(zip(items, keys, choices, strict=True), 1)]
+    by_goal = {}
+    for goal in ("reach", "release"):
+        subset = [entry for entry in review if entry["goal"] == goal]
+        by_goal[goal] = {"correct": sum(entry["correct"] for entry in subset), "total": len(subset)}
+    return {"correct": sum(entry["correct"] for entry in review), "total": len(review),
+            "by_goal": by_goal, "items": review}
+
+
 class Study:
-    def __init__(self, database, kind, *, clock=time.time):
+    def __init__(self, database, kind, *, self_check=False, clock=time.time):
         self.database, self.kind, self.clock = Path(database), kind, clock
+        self.self_check = self_check
         self.labels = evidence(kind)
         self.items, self.keys = load_bank()
         self.cache = {}
@@ -55,6 +71,16 @@ class Study:
                     "estimator": "rw-kalman-v1", "encoder": "polar8-v1", "changes": [],
                     "practice_slots": list(PRACTICE_SLOTS),
                     "bank_sha256": hashlib.sha256(canonical([self.items, self.keys]).encode()).hexdigest()}
+        if self_check:
+            followup = json.loads((BANK / "followup/bank.json").read_text(encoding="utf-8"))
+            for block, size in (("retention", 16), ("diagnostic", 8)):
+                rows = followup[block]
+                if len(rows) != size or any(row["answer"] not in ("left", "right") for row in rows):
+                    raise ValueError(f"Incomplete {block} bank")
+                self.items[block] = [row["item"] for row in rows]
+                self.keys[block] = [row["answer"] for row in rows]
+            settings.update(protocol=SELF_PROTOCOL, target_interval_seconds=RETURN_INTERVAL,
+                            return_bank_sha256=hashlib.sha256(canonical(followup).encode()).hexdigest())
         self.settings = settings
         self.database.parent.mkdir(parents=True, exist_ok=True)
         with self.connection() as db:
@@ -75,18 +101,34 @@ class Study:
             db.execute("BEGIN IMMEDIATE")
             yield db
 
-    def start(self, existing=None):
+    def personal_session(self):
+        # The self-check owns one local database. The operator can return after losing the browser cookie.
         with self.connection() as db:
-            if existing and db.execute("SELECT 1 FROM sessions WHERE id=?", (existing,)).fetchone():
-                return existing
-            # A randomized permutation of the four condition/form cells in every allocation block.
-            recent = db.execute("SELECT arm,form FROM sessions ORDER BY rowid DESC LIMIT "
-                                "(SELECT COUNT(*) % 4 FROM sessions)").fetchall()
-            used = {tuple(row) for row in recent}
-            arm, form = secrets.choice([cell for cell in product(ARMS, FORMS) if cell not in used])
+            row = db.execute("SELECT id FROM sessions LIMIT 1").fetchone()
+            return row["id"] if row else None
+
+    def start(self, existing=None, *, exposure=None):
+        with self.connection() as db:
+            if self.self_check:
+                prior = db.execute("SELECT id FROM sessions LIMIT 1").fetchone()
+                if prior:
+                    return prior["id"]
+                if exposure not in EXPOSURES:
+                    raise ValueError("시작 전 과제를 어느 정도 보았는지 골라 주세요.")
+                arm, form = "code", secrets.choice(FORMS)
+            else:
+                if existing and db.execute("SELECT 1 FROM sessions WHERE id=?", (existing,)).fetchone():
+                    return existing
+                # Randomize all four condition/form cells once per allocation block.
+                recent = db.execute("SELECT arm,form FROM sessions ORDER BY rowid DESC LIMIT "
+                                    "(SELECT COUNT(*) % 4 FROM sessions)").fetchall()
+                used = {tuple(row) for row in recent}
+                arm, form = secrets.choice([cell for cell in product(ARMS, FORMS) if cell not in used])
             token = existing or secrets.token_urlsafe(24)
             state = {"phase": "practice", "revision": 0, "practice": [], "block": 0, "step": 0,
                      "choices": [], "created_at": self.clock()}
+            if self.self_check:
+                state.update(prior_exposure=exposure, retention=[], diagnostic=[])
             db.execute("INSERT INTO sessions VALUES(?,?,?,?)", (token, arm, form, canonical(state)))
         return token
 
@@ -114,6 +156,8 @@ class Study:
     def view(self, db, row, s):
         phase = s["phase"]
         public = {"phase": phase, "revision": s["revision"], "participant_kind": self.kind}
+        if self.self_check:
+            public["self_check"] = True
         if phase == "practice":
             index = len(s["practice"])
             channels = [0.] * 8
@@ -132,9 +176,13 @@ class Study:
                 packet = view["feedback"]
                 public.update(position=view["visible"]["position"], emitted_step=packet["emitted_step"],
                               signal={field: packet[field] for field in SIGNAL_FIELDS})
-        elif phase == "transfer":
-            index = len(s["choices"])
-            public.update(index=index, total=len(self.items[row["form"]]), item=self.items[row["form"]][index])
+        elif phase in ("transfer", "retention", "diagnostic"):
+            block = row["form"] if phase == "transfer" else phase
+            index = len(s["choices"] if phase == "transfer" else s[phase])
+            public.update(index=index, total=len(self.items[block]), item=self.items[block][index])
+        elif phase == "return_wait":
+            public.update(first_finished_at=s["transfer_finished_at"],
+                          target_at=s["transfer_finished_at"] + RETURN_INTERVAL)
         elif phase == "complete":
             public["result"] = self.result(db, row, s)
         return public
@@ -163,18 +211,31 @@ class Study:
                 self.steer(db, row, s, value)
             elif (phase, action) == ("transfer_ready", "begin"):
                 s.update(phase="transfer", item_opened=self.clock())
-            elif (phase, action) == ("transfer", "choose"):
+            elif (phase, action) == ("return_wait", "begin"):
+                now = self.clock()
+                s.update(phase="retention", return_started_at=now, item_opened=now)
+            elif (phase, action) == ("diagnostic_ready", "begin"):
+                s.update(phase="diagnostic", item_opened=self.clock())
+            elif phase in ("transfer", "retention", "diagnostic") and action == "choose":
                 if value not in ("left", "right"):
                     raise ValueError("Choose a gate.")
                 now = self.clock()
-                s["choices"].append({"side": value, "elapsed_ms": round(max(0, now - s["item_opened"]) * 1000)})
+                choices = s["choices"] if phase == "transfer" else s[phase]
+                choices.append({"side": value, "elapsed_ms": round(max(0, now - s["item_opened"]) * 1000)})
                 s["item_opened"] = now
-                if len(s["choices"]) == len(self.items[row["form"]]):
-                    s.update(phase="reflection", transfer_finished_at=now)
-            elif (phase, action) == ("reflection", "finish"):
+                block = row["form"] if phase == "transfer" else phase
+                if len(choices) == len(self.items[block]):
+                    s[f"{phase}_finished_at"] = now
+                    s["phase"] = {"transfer": "reflection", "retention": "diagnostic_ready",
+                                  "diagnostic": "return_reflection"}[phase]
+            elif phase in ("reflection", "return_reflection") and action == "finish":
                 if not isinstance(value, str) or len(value) > 600:
                     raise ValueError("Use up to 600 characters.")
-                s.update(phase="complete", note=value.strip(), completed_at=self.clock())
+                s["return_note" if phase == "return_reflection" else "note"] = value.strip()
+                if self.self_check and phase == "reflection":
+                    s["phase"] = "return_wait"
+                else:
+                    s.update(phase="complete", completed_at=self.clock())
             else:
                 raise Conflict("This action is unavailable in the current phase.")
             s["revision"] += 1
@@ -203,26 +264,36 @@ class Study:
         form = row["form"]
         if len(s["choices"]) != len(self.keys[form]):
             raise ValueError("The first transfer block is incomplete.")
-        review = [{"item": i + 1, "goal": item["goal"], **choice, "answer": answer,
-                   "correct": choice["side"] == answer}
-                  for i, (item, choice, answer) in enumerate(zip(self.items[form], s["choices"], self.keys[form]))]
         metrics = db.execute("""SELECT block, COUNT(*) AS n, AVG(radius_squared) AS mse, SUM(active_ms) AS ms
                                 FROM ticks WHERE session=? GROUP BY block ORDER BY block""", (row["id"],))
-        return {
-            **self.labels, "protocol": PROTOCOL, "arm": row["arm"], "form": form,
+        result = {
+            **self.labels, "protocol": self.settings["protocol"], "arm": row["arm"], "form": form,
             "estimator": self.settings["estimator"], "encoder": self.settings["encoder"],
             "bank_sha256": self.settings["bank_sha256"],
             "practice_correct": sum(a == b for a, b in zip(s["practice"], PRACTICE_SLOTS)),
-            "practice_total": len(PRACTICE_SLOTS), "correct": sum(r["correct"] for r in review), "total": len(review),
-            "by_goal": {g: {"correct": sum(r["correct"] for r in review if r["goal"] == g),
-                            "total": sum(r["goal"] == g for r in review)} for g in ("reach", "release")},
+            "practice_total": len(PRACTICE_SLOTS),
+            **score_block(self.items[form], self.keys[form], s["choices"]),
             "training": [{"block": m["block"] + 1, "seed": TRAINING[m["block"]].seed, "steps": m["n"],
                           "simulation_s": m["n"] * TRAINING[m["block"]].dt_s, "foreground_s": m["ms"] / 1000,
                           "center_rmse": math.sqrt(m["mse"])} for m in metrics],
-            "items": review, "reflection": s.get("note"), "first_block_finished_at": s["transfer_finished_at"],
+            "reflection": s.get("note"), "first_block_finished_at": s["transfer_finished_at"],
         }
+        if self.self_check:
+            gap = s["return_started_at"] - s["transfer_finished_at"]
+            result.update(prior_exposure=s["prior_exposure"], return_started_at=s["return_started_at"],
+                          target_interval_seconds=RETURN_INTERVAL, actual_interval_seconds=gap,
+                          started_before_target=gap < RETURN_INTERVAL, return_reflection=s["return_note"],
+                          return_bank_sha256=self.settings["return_bank_sha256"])
+            for block in ("retention", "diagnostic"):
+                result[block] = score_block(self.items[block], self.keys[block], s[block])
+        return result
 
     def summary(self):
+        if self.self_check:
+            token = self.personal_session()
+            state = self.current(token) if token else {"phase": "welcome"}
+            return {**self.labels, "protocol": SELF_PROTOCOL, "phase": state["phase"],
+                    **({"result": state["result"]} if "result" in state else {})}
         arms = {arm: {"started": 0, "first_blocks_completed": 0, "sessions_finished": 0,
                       "mean_first_block_accuracy": None} for arm in ARMS}
         with self.connection() as db:

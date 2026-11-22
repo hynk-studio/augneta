@@ -128,3 +128,66 @@ def test_only_current_item_and_local_json_controls(tmp_path):
         assert c.get(url).status_code == 404
     assert c.get("/display.js").status_code == 200
     assert c.get("/api/session").json["participant_kind"] == "developer"
+
+
+def test_personal_visits_withhold_every_score_until_both_blocks_finish(tmp_path):
+    from study import RETURN_INTERVAL
+
+    db = tmp_path / "self.db"
+    clock = [10000.]
+    study = Study(db, "synthetic", self_check=True, clock=lambda: clock[0])
+    assert study.summary()["phase"] == "welcome"
+    with pytest.raises(ValueError):
+        study.start(exposure="invalid")
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        tokens = list(pool.map(lambda _: study.start(exposure="rule"), range(3)))
+    assert len(set(tokens)) == 1
+    token = tokens[0]
+    with pytest.raises(ValueError):
+        Study(db, "synthetic")
+    state = prepare(study, token)
+    for cfg in TRAINING:
+        assert state["arm"] == "code"
+        state = advance(study, token, state, "begin")
+        for _ in range(cfg.steps):
+            state = advance(study, token, state, "steer", {"action":[0,0], "active_ms":50})
+    state = advance(study, token, state, "begin")
+    for phase, count in (("transfer",16), ("retention",16), ("diagnostic",8)):
+        for i in range(count):
+            assert state["phase"] == phase and state["index"] == i
+            assert set(state["item"]) == {"geometry","goal","signal"} and "result" not in state
+            if i == 3:
+                old = state
+                study = Study(db, "synthetic", self_check=True, clock=lambda: clock[0])
+                assert study.current(token) == old
+                with pytest.raises(Conflict):
+                    study.event(token, old["revision"] - 1, "choose", "right")
+            clock[0] += 1.25
+            state = advance(study, token, state, "choose", "left")
+        if phase == "transfer":
+            assert state["phase"] == "reflection"
+            first_end = clock[0]
+            clock[0] += 90
+            state = advance(study, token, state, "finish", "first")
+            assert state["target_at"] == first_end + RETURN_INTERVAL
+            app = create_app(db, "synthetic", self_check=True)
+            c = app.test_client()
+            assert c.get("/api/session", base_url="http://other.example").status_code == 400
+            assert c.get("/api/session").json["phase"] == "return_wait"
+            assert c.post("/api/new", json={}).status_code == 409
+            for path in ("/followup/bank.json","/followup/audit.json","/ui/bank.json"):
+                assert c.get(path).status_code == 404
+            clock[0] = first_end + RETURN_INTERVAL + 3600
+        if phase in ("transfer","retention"):
+            assert "result" not in state and "result" not in study.summary()
+            state = advance(study, token, state, "begin")
+    assert state["phase"] == "return_reflection" and "result" not in study.summary()
+    state = advance(study, token, state, "finish", "second")
+    result = state["result"]
+    assert result["arm"] == "code" and result["prior_exposure"] == "rule"
+    assert (result["correct"],result["retention"]["correct"],result["diagnostic"]["correct"]) == (8,8,4)
+    assert result["actual_interval_seconds"] == 25 * 3600 and not result["started_before_target"]
+    assert result["reflection"] == "first" and result["return_reflection"] == "second"
+    assert all(r["elapsed_ms"] == 1250 for r in result["retention"]["items"])
+    assert study.summary()["result"] == result and "arms" not in study.summary()
+    assert result["participant_kind"] == "synthetic" and result["human_evidence"] is False

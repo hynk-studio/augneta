@@ -16,6 +16,10 @@ export function drawMap(canvas, g) {
   const scale = 258;
   const point = ([x, y]) => [300 + x * scale, 140 - y * scale];
   const [lx, ly] = point(g.left), [rx, ry] = point(g.right);
+  const steep = Math.abs(ry-ly) > Math.abs(rx-lx);
+  const bearing = ly === ry ? "두 관문의 높이가 같습니다." :
+    `${ly < ry ? "왼쪽" : "오른쪽"} 관문이 더 위에 있습니다. 기울기는 ${Math.round(Math.atan2(Math.abs(ry-ly), rx-lx) * 180 / Math.PI)}도입니다.`;
+  canvas.setAttribute("aria-label", `관측소 양쪽에 같은 거리의 관문이 있습니다. ${bearing}`);
   ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry);
   ctx.strokeStyle = "#c1cec2"; ctx.lineWidth = 2; ctx.stroke();
   for (const [key, label] of [["left", "왼쪽 관문"], ["center", "관측소"], ["right", "오른쪽 관문"]]) {
@@ -24,7 +28,13 @@ export function drawMap(canvas, g) {
     circle(ctx, x, y, radius, station ? "#e0eee8" : "#f3e7db", station ? "#21685e" : "#9c5c34");
     circle(ctx, x, y, 4, station ? "#21685e" : "#9c5c34");
     ctx.fillStyle = "#253e36"; ctx.textAlign = "center"; ctx.font = "23px system-ui";
-    ctx.fillText(label, x, y + radius + 23);
+    if (steep) {
+      const left = key === "left";
+      ctx.textAlign = left ? "right" : "left";
+      ctx.fillText(label, x + (left ? -1 : 1) * (radius + 8), y + 7);
+    } else {
+      ctx.fillText(label, x, y + radius + 23);
+    }
   }
 }
 

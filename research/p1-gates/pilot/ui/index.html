@@ -16,6 +16,14 @@
         <p><strong>예시</strong><br>오른쪽 위 점이 켜지면 물은 오른쪽 위로 흐릅니다. 어떤 방향으로 움직일지는 직접 결정합니다.</p></div>
       <p>여덟 방향을 연습한 뒤, 30초씩 두 번 부표를 중앙에 유지합니다. 마지막에는 관문 16개를 고릅니다.</p>
       <p class="minor">이 로컬 리허설은 연습 응답, 조작, 시간, 관문 선택을 이 기기에 저장합니다. 이름은 입력하지 않습니다.</p>
+      <div id="personal-intro" hidden>
+        <p>개인 점검은 두 번에 걸쳐 진행합니다. 첫날 마친 뒤 약 24시간 후 같은 기기에서 돌아와 주세요. 관문 점수와 정답은 두 번째 방문을 마치면 볼 수 있습니다.</p>
+        <label for="exposure">시작 전에 이 과제를 얼마나 보았나요?</label>
+        <select id="exposure">
+          <option value="unsure">잘 모르겠음</option><option value="new">처음 봄</option>
+          <option value="rule">풀이 원리를 읽거나 들음</option><option value="items">실제 문항이나 문항별 정답을 봄</option>
+        </select>
+      </div>
       <button class="primary" id="start">방향 연습 시작</button>
     </section>
     <section id="practice" hidden>
@@ -59,8 +67,19 @@
     <section id="transfer-ready" hidden>
       <h1>두 관문 중 하나를 선택하세요</h1>
       <p>중앙에서 출발하거나 관문에서 표식을 놓게 됩니다. 각 문항에 적힌 목표를 읽고 고르세요. 두 관문은 중앙에서 같은 거리에 있습니다.</p>
-      <p>총 16문항입니다. 확정한 선택은 되돌릴 수 없습니다. 결과는 모든 문항을 마친 뒤 확인할 수 있습니다.</p>
+      <p id="first-instructions">총 16문항입니다. 확정한 선택은 되돌릴 수 없습니다. 결과는 모든 문항을 마친 뒤 확인할 수 있습니다.</p>
       <button class="primary" id="gate-begin">관문 검사 시작</button>
+    </section>
+    <section id="return-wait" hidden>
+      <h1>첫 방문 기록을 저장했습니다</h1>
+      <p id="return-time"></p>
+      <p>지금은 창을 닫아도 됩니다. 두 번째 방문에서는 추가 연습 없이 새 관문 16개를 고르고, 이어서 8개를 더 풉니다. 같은 컴퓨터에서 개인 점검을 다시 열면 여기서 이어집니다.</p>
+      <button id="return-begin" class="primary">두 번째 방문 시작</button>
+    </section>
+    <section id="diagnostic-ready" hidden>
+      <h1>마지막 관문 8개를 선택하세요</h1>
+      <p>앞에서처럼 각 문항에 적힌 목표를 읽고 관문을 골라 주세요.</p>
+      <button id="diagnostic-begin" class="primary">마지막 묶음 시작</button>
     </section>
     <section id="reflection" hidden>
       <h1>어떻게 선택했나요?</h1>
@@ -69,9 +88,10 @@
       <button class="primary" id="finish">결과 보기</button>
     </section>
     <section id="complete" hidden>
-      <h1>첫 관문 검사 결과</h1>
+      <h1 id="result-title">첫 관문 검사 결과</h1>
       <div class="panel"><strong id="score" class="score"></strong><p id="score-detail"></p></div>
       <p id="training-detail"></p>
+      <p id="return-score" hidden></p>
       <details><summary>문항별 선택과 정답</summary><ol id="review"></ol></details>
       <div class="buttons"><button id="download">내 결과 JSON</button><button id="again">새 리허설</button></div>
     </section>
