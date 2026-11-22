@@ -21,8 +21,9 @@ The initial documents were prepared on 2026-10-14 from a protocol drafted on 202
 | P1 — Learnable sensory input | Which information, encoding, and training support use in unfamiliar tasks? |
 | P2 — Continuity through interface changes | How do stable meanings, abrupt remapping, and gradual transitions affect relearning and later performance? |
 | P3 — Biological inputs and adaptation | How can actual EMG or neural signals support reliable inputs and selective recalibration? |
+| P4 — Predictive sensory input (planned) | Can people use a forecast and its uncertainty when the same present state has different possible futures? |
 
-P3 is a parallel research track, not a prerequisite for P1 or P2. Additional motor degrees of freedom, artificial proprioception, and richer representations remain possible extensions.
+The first original learning study will test whether people can use the same hidden-flow signal to accomplish unfamiliar goals. A parallel reanalysis of public human movement data will inform how P2 measures the cost of changing an interface. P3 and the P4 forecast comparison can proceed independently. The [research roadmap](docs/RESEARCH_ROADMAP.md) sets the work order, deliverables, and decisions for each path.
 
 ## First implementation
 
